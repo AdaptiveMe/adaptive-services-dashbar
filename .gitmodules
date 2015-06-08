@@ -2,3 +2,7 @@
 	path = deps/che
 	url = https://github.com/codenvy/che.git
 	branch = 3.9.x
+[submodule "deps/che-core"]
+	path = deps/che-core
+	url = https://github.com/codenvy/che-core.git
+	branch = 3.9.x
