@@ -6,3 +6,7 @@
 	path = deps/che-core
 	url = https://github.com/codenvy/che-core.git
 	branch = 3.9.x
+[submodule "deps/user-dashboard"]
+	path = deps/user-dashboard
+	url = https://github.com/codenvy/user-dashboard.git
+	branch = master
