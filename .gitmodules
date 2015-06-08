@@ -10,3 +10,6 @@
 	path = deps/user-dashboard
 	url = https://github.com/codenvy/user-dashboard.git
 	branch = master
+[submodule "deps/cli"]
+	path = deps/cli
+	url = https://github.com/codenvy/cli.git
