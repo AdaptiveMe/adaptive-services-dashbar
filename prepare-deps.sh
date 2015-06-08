@@ -1,4 +1,4 @@
-cd che
+cd deps
 git submodule update --recursive --remote
 cd che-core
 mvn clean install
