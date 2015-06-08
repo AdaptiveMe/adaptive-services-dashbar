@@ -1,0 +1,4 @@
+[submodule "deps/che"]
+	path = deps/che
+	url = https://github.com/codenvy/che.git
+	branch = 3.9.x
