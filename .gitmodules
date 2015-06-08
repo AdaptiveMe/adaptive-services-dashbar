@@ -1,0 +1,12 @@
+[submodule "cli"]
+	path = deps/cli
+	url = https://github.com/AdaptiveMe/cli.git
+[submodule "che"]
+	path = deps/che
+	url = https://github.com/AdaptiveMe/che.git
+[submodule "che-core"]
+	path = deps/che-core
+	url = https://github.com/AdaptiveMe/che-core.git
+[submodule "user-dashboard"]
+	path = deps/user-dashboard
+	url = https://github.com/AdaptiveMe/user-dashboard.git
