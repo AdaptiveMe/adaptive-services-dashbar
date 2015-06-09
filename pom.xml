@@ -31,12 +31,12 @@
     </modules>
     <properties>
         <dashbar.version>1.0-SNAPSHOT</dashbar.version>
-        <che.version>3.10.0-SNAPSHOT</che.version>
+        <che.version>3.10.1-SNAPSHOT</che.version>
         <che.core.version>3.10.1-SNAPSHOT</che.core.version>
         <spring.version>3.2.10.RELEASE</spring.version>
         <spring.data.version>1.6.4.RELEASE</spring.data.version>
         <org.everrest.version>1.4.0</org.everrest.version>
-        <javax.servlet.version>3.0.1</javax.servlet.version>
+        <java.web.api>6.0</java.web.api>
         <org.apache.tomcat.version>7.0.54</org.apache.tomcat.version>
     </properties>
     <repositories>

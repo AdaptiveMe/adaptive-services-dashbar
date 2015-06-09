@@ -43,7 +43,16 @@ import org.eclipse.che.api.workspace.server.WorkspaceService;
 import org.eclipse.che.docs.DocsModule;
 import org.eclipse.che.everrest.CodenvyAsynchronousJobPool;
 import org.eclipse.che.everrest.ETagResponseFilter;
+import org.eclipse.che.generator.archetype.ArchetypeGeneratorModule;
+import org.eclipse.che.ide.ext.java.jdi.server.DebuggerService;
+import org.eclipse.che.ide.ext.java.server.format.FormatService;
+import org.eclipse.che.ide.ext.ssh.server.KeyService;
+import org.eclipse.che.ide.ext.ssh.server.SshKeyStore;
+import org.eclipse.che.ide.ext.ssh.server.UserProfileSshKeyStore;
 import org.eclipse.che.inject.DynaModule;
+import org.eclipse.che.jdt.JavaNavigationService;
+import org.eclipse.che.jdt.JavadocService;
+import org.eclipse.che.jdt.RestNameEnvironment;
 import org.eclipse.che.security.oauth.OAuthAuthenticationService;
 import org.eclipse.che.security.oauth.OAuthAuthenticatorProvider;
 import org.eclipse.che.security.oauth.OAuthAuthenticatorProviderImpl;
@@ -82,24 +91,24 @@ public class ApiModule extends AbstractModule {
         bind(RunnerAdminService.class);
         bind(SlaveRunnerService.class);
 
-//        bind(DebuggerService.class);
-//        bind(FormatService.class);
-//
-//        bind(KeyService.class);
-//        bind(SshKeyStore.class).to(UserProfileSshKeyStore.class);
+        bind(DebuggerService.class);
+        bind(FormatService.class);
+
+        bind(KeyService.class);
+        bind(SshKeyStore.class).to(UserProfileSshKeyStore.class);
 
         bind(OAuthAuthenticationService.class);
         bind(OAuthTokenProvider.class).to(OAuthAuthenticatorTokenProvider.class);
         bind(OAuthAuthenticatorProvider.class).to(OAuthAuthenticatorProviderImpl.class);
 
 
-//        bind(RestNameEnvironment.class);
-//        bind(JavadocService.class);
-//        bind(JavaNavigationService.class);
+        bind(RestNameEnvironment.class);
+        bind(JavadocService.class);
+        bind(JavaNavigationService.class);
         bind(AsynchronousJobPool.class).to(CodenvyAsynchronousJobPool.class);
         bind(new PathKey<>(AsynchronousJobService.class, "/async/{ws-id}")).to(AsynchronousJobService.class);
 
-//        install(new ArchetypeGeneratorModule());
+        install(new ArchetypeGeneratorModule());
 
         install(new CoreRestModule());
         install(new AnalyticsModule());
