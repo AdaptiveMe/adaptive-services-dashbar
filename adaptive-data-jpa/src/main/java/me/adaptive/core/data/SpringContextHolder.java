@@ -12,7 +12,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ge me.adaptive.core.data;
+ */
+
+package me.adaptive.core.data;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;

@@ -12,7 +12,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ge me.adaptive.core.data.repo;
+ */
+
+package me.adaptive.core.data.repo;
 
 import me.adaptive.core.data.domain.WorkspaceEntity;
 import org.springframework.data.jpa.repository.JpaRepository;

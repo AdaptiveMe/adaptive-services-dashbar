@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2014-2015. Adaptive.me.
  *
@@ -13,7 +12,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ge me.adaptive.che.infrastructure.dao;
+ */
+
+package me.adaptive.che.infrastructure.dao;
 
 import org.eclipse.che.api.core.ApiException;
 import org.eclipse.che.api.core.ConflictException;
@@ -134,7 +135,8 @@ public class InMemoryFactoryStore implements FactoryStore {
      * @param factory   - factory information
      * @return - if of stored factory
      * @throws org.eclipse.che.api.core.ApiException
-     */verride
+     */
+    @Override
     public String updateFactory(String factoryId, Factory factory) throws ApiException {
         lock.writeLock().lock();
         try {

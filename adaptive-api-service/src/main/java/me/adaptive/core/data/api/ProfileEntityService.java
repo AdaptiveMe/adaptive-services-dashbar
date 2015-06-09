@@ -12,16 +12,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ge me.adaptive.core.data.api;
+ */
 
-impor
+package me.adaptive.core.data.api;
+
 
 import me.adaptive.core.data.domain.ProfileEntity;
 import me.adaptive.core.data.domain.UserEntity;
 import me.adaptive.core.data.repo.ProfileEntityRepository;
 import org.eclipse.che.api.user.server.dao.Profile;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;* Created by panthro on 08/06/15.
+import org.springframework.stereotype.Service;
+
+/** Created by panthro on 08/06/15.
  */
 @Service
 public class ProfileEntityService {

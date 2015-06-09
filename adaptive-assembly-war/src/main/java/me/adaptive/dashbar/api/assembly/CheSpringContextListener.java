@@ -12,7 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ge me.adaptive.dashbar.api.assembly;
+ */
+package me.adaptive.dashbar.api.assembly;
 
 import me.adaptive.core.data.SpringContextHolder;
 import org.eclipse.che.inject.CodenvyBootstrap;

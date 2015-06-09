@@ -12,7 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ge me.adaptive.core.data.api;
+ */
+package me.adaptive.core.data.api;
 
 import me.adaptive.core.data.domain.AccountEntity;
 import me.adaptive.core.data.domain.AccountMemberEntity;
