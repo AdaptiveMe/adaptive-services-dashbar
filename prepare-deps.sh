@@ -5,7 +5,7 @@ HOME_DIR=`pwd`
 command -v compass >/dev/null 2>&1 || { echo "I require compass but it's not installed. Install with ´sudo gem install compass --pre´  Aborting." >&2; exit 1; }
 cd $HOME_DIR/deps
 
-git submodule update --recursive --remote
+#git submodule update --recursive --remote
 if [ $? -ne 0 ]; then
     echo "ERROR: Unable to update submodules."
     exit 1
