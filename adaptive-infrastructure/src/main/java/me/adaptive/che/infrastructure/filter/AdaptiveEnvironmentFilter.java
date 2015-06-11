@@ -57,7 +57,7 @@ public class AdaptiveEnvironmentFilter implements Filter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         if(servletRequest.getParameter(TOKEN_PARAM)!= null){
             Optional<UserTokenEntity> token = userTokenEntityService.findByToken(servletRequest.getParameter(TOKEN_PARAM));
-            if (!token.isPresent()) {
+            if (token.isPresent()) {
 
                 EnvironmentContext environmentContext = EnvironmentContext.getCurrent();
                 //TODO Left it commented out so we can have a reference of the roles
