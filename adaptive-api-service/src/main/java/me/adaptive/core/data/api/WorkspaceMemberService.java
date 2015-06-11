@@ -42,15 +42,6 @@ public class WorkspaceMemberService {
     @Autowired
     private UserEntityService userService;
 
-    public Set<WorkspaceMemberEntity> findByEmailAndRole(String email, String role) {
-        return workspaceMemberRepository.findByUserAliasesContainsAndRoleContains(email, role);
-    }
-
-
-    public Set<WorkspaceMemberEntity> findByUserEmail(String userEmail) {
-        return workspaceMemberRepository.findByUserAliasesContains(userEmail);
-    }
-
     public Set<WorkspaceMemberEntity> findByUserId(String id) {
         return workspaceMemberRepository.findByUserUserId(id);
     }

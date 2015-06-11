@@ -37,9 +37,5 @@ public interface WorkspaceMemberRepository extends JpaRepository<WorkspaceMember
 
     Set<WorkspaceMemberEntity> findByUserUserId(String id);
 
-    Set<WorkspaceMemberEntity> findByUserAliasesContainsAndRoleContains(String email, String role);
-
-    Set<WorkspaceMemberEntity> findByUserAliasesContains(String userEmail);
-
     Set<WorkspaceMemberEntity> findByWorkspaceWorkspaceId(String workspaceId);
 }
