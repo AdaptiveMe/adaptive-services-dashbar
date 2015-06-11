@@ -22,6 +22,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -32,7 +33,7 @@ public interface AccountMemberRepository extends JpaRepository<AccountMemberEnti
 
     Set<AccountMemberEntity> findByAccount(AccountEntity accountEntity);
 
-    Set<AccountMemberEntity> findByUserUserIdAndAccountAccountId(String userEmail, String accountId);
+    Optional<AccountMemberEntity> findByUserUserIdAndAccountAccountId(String userEmail, String accountId);
 
     Set<AccountMemberEntity> findByAccountAccountId(String accountId);
 
