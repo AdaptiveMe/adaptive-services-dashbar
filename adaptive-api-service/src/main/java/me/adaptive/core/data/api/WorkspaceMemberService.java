@@ -26,6 +26,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by panthro on 08/06/15.
@@ -39,20 +42,17 @@ public class WorkspaceMemberService {
     @Autowired
     private UserEntityService userService;
 
-    public List<WorkspaceMemberEntity> findByUserEmailAndRolesContains(String email, String role) {
-        return workspaceMemberRepository.findByUserEmailAndRolesContains(email, role);
+    public Set<WorkspaceMemberEntity> findByEmailAndRole(String email, String role) {
+        return workspaceMemberRepository.findByUserAliasesContainsAndRoleContains(email, role);
     }
 
-    public List<WorkspaceMemberEntity> findAll() {
-        return workspaceMemberRepository.findAll();
+
+    public Set<WorkspaceMemberEntity> findByUserEmail(String userEmail) {
+        return workspaceMemberRepository.findByUserAliasesContains(userEmail);
     }
 
-    public List<WorkspaceMemberEntity> findByUserEmail(String userEmail) {
-        return workspaceMemberRepository.findByUserEmail(userEmail);
-    }
-
-    public List<WorkspaceMemberEntity> findByUserId(Long id) {
-        return workspaceMemberRepository.findByUserId(id);
+    public Set<WorkspaceMemberEntity> findByUserId(String id) {
+        return workspaceMemberRepository.findByUserUserId(id);
     }
 
     public void delete(Iterable<WorkspaceMemberEntity> entities) {
@@ -64,26 +64,24 @@ public class WorkspaceMemberService {
     }
 
     public Member toMember(WorkspaceMemberEntity workspaceMemberEntity){
-        List<String> roles = new ArrayList<String>(workspaceMemberEntity.getRoles().size());
+        List<String> roles = new ArrayList<>(workspaceMemberEntity.getRoles().size());
         CollectionUtils.addAll(roles, workspaceMemberEntity.getRoles().iterator());
-        return new Member().withWorkspaceId(workspaceMemberEntity.getWorkspace().getId().toString()).withUserId(workspaceMemberEntity.getUser().getEmail()).withRoles(roles);
+        return new Member().withWorkspaceId(workspaceMemberEntity.getWorkspace().getWorkspaceId()).withUserId(workspaceMemberEntity.getUser().getUserId()).withRoles(roles);
     }
 
 
     public List<Member> toMemberList(List<WorkspaceMemberEntity> workspaceMemberEntities){
-        List<Member> members = new ArrayList<Member>(workspaceMemberEntities.size());
-        for(WorkspaceMemberEntity workspaceMemberEntity : workspaceMemberEntities){
-            members.add(toMember(workspaceMemberEntity));
-        }
+        List<Member> members = new ArrayList<>(workspaceMemberEntities.size());
+        members.addAll(workspaceMemberEntities.stream().map(this::toMember).collect(Collectors.toList()));
         return members;
     }
 
-    public List<WorkspaceMemberEntity> findByWorkspace(WorkspaceEntity workspaceEntity) {
+    public Set<WorkspaceMemberEntity> findByWorkspace(WorkspaceEntity workspaceEntity) {
         return workspaceMemberRepository.findByWorkspace(workspaceEntity);
     }
 
-    public WorkspaceMemberEntity findByUserIdAndWorkspaceId(Long userId, Long workspaceId) {
-        return workspaceMemberRepository.findByUserIdAndWorkspaceId(userId, workspaceId);
+    public Optional<WorkspaceMemberEntity> findByUserIdAndWorkspaceId(String userId, Long workspaceId) {
+        return workspaceMemberRepository.findByUserUserIdAndWorkspaceWorkspaceId(userId, workspaceId);
     }
 
     public WorkspaceMemberEntity save(WorkspaceMemberEntity workspaceMemberEntity){
@@ -93,8 +91,8 @@ public class WorkspaceMemberService {
     public WorkspaceMemberEntity toWorkspaceMemberEntity(Member member){
         WorkspaceMemberEntity workspaceMemberEntity = new WorkspaceMemberEntity();
         CollectionUtils.addAll(workspaceMemberEntity.getRoles(),member.getRoles().iterator());
-        workspaceMemberEntity.setUser(userService.findOne(Long.valueOf(member.getUserId())));
-        workspaceMemberEntity.setWorkspace(workspaceEntityService.findOne(Long.valueOf(member.getWorkspaceId())));
+        workspaceMemberEntity.setUser(member.getUserId() == null ? null : userService.findByUserId(member.getUserId()).get());
+        workspaceMemberEntity.setWorkspace(member.getWorkspaceId() == null ? null : workspaceEntityService.findByWorkspaceId(member.getWorkspaceId()).get());
         return workspaceMemberEntity;
     }
 }

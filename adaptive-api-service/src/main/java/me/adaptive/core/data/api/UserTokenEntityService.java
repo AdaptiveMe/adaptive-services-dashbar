@@ -19,11 +19,16 @@ package me.adaptive.core.data.api;
 import me.adaptive.core.data.domain.UserEntity;
 import me.adaptive.core.data.domain.UserTokenEntity;
 import me.adaptive.core.data.repo.UserTokenRepository;
+import me.adaptive.core.data.util.PasswordHash;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Created by panthro on 05/06/15.
@@ -31,30 +36,34 @@ import java.util.List;
 @Service
 public class UserTokenEntityService {
 
-    private static final String SALT = "yyxFHMF6zYwcm8ePH7Uk";
-
     @Autowired
     private UserTokenRepository userTokenRepository;
 
     public UserTokenEntity generateTokenForUser(UserEntity userEntity){
-        return userTokenRepository.save(new UserTokenEntity(userEntity,getToken(userEntity)));
+        UserTokenEntity userTokenEntity = new UserTokenEntity();
+        userTokenEntity.setUser(userEntity);
+        userTokenEntity.setToken(getToken(userEntity));
+        return userTokenRepository.save(userTokenEntity);
     }
 
     private String getToken(UserEntity user){
-        StringBuilder builder = new StringBuilder(user.getId().toString());
-
-        builder.append(user.getEmail())
+        StringBuilder builder = new StringBuilder(user.getUserId());
+        builder.append(user.hashCode())
                 .append(user.getPasswordHash())
-                .append(System.nanoTime())
-                .append(SALT);
-        return String.valueOf(DigestUtils.sha256Hex(builder.toString()));
+                .append(System.nanoTime());
+        try {
+            return PasswordHash.createHash(builder.toString());
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            LoggerFactory.getLogger(UserTokenEntityService.class).warn("Error creating token", e);
+            return String.valueOf(DigestUtils.sha256Hex(builder.toString()));
+        }
     }
 
-    public UserTokenEntity findByToken(String token) {
+    public Optional<UserTokenEntity> findByToken(String token) {
         return userTokenRepository.findByToken(token);
     }
 
-    public List<UserTokenEntity> findByUser(UserEntity user) {
+    public Set<UserTokenEntity> findByUser(UserEntity user) {
         return userTokenRepository.findByUserAndActiveTrue(user);
     }
 }

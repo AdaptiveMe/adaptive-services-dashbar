@@ -22,8 +22,10 @@ import org.eclipse.che.api.workspace.server.dao.Workspace;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by panthro on 08/06/15.
@@ -36,20 +38,12 @@ public class WorkspaceEntityService {
     @Autowired
     private AccountEntityService accountEntityService;
 
-    public WorkspaceEntity findByName(String name) {
+    public Optional<WorkspaceEntity> findByName(String name) {
         return workspaceEntityRepository.findByName(name);
     }
 
-    public List<WorkspaceEntity> findByAccountId(Long accountId) {
-        return workspaceEntityRepository.findByAccountId(accountId);
-    }
-
-    public List<WorkspaceEntity> findAll() {
-        return workspaceEntityRepository.findAll();
-    }
-
-    public WorkspaceEntity findOne(Long aLong) {
-        return workspaceEntityRepository.findOne(aLong);
+    public Set<WorkspaceEntity> findByAccountId(Long accountId) {
+        return workspaceEntityRepository.findByAccountAccountId(accountId);
     }
 
     public boolean exists(Long aLong) {
@@ -59,10 +53,10 @@ public class WorkspaceEntityService {
     public WorkspaceEntity toWorkspaceEntity(Workspace workspace){
         WorkspaceEntity entity = new WorkspaceEntity();
         entity.setName(workspace.getName());
-        entity.setId(workspace.getId() != null ? Long.valueOf(workspace.getId()) : null);
+        entity.setWorkspaceId(workspace.getId());
         entity.setTemporary(workspace.isTemporary());
         entity.setAttributes(workspace.getAttributes());
-        entity.setAccount(workspace.getAccountId() != null ? accountEntityService.findOne(Long.valueOf(workspace.getAccountId())) : null);
+        entity.setAccount(workspace.getAccountId() != null ? accountEntityService.findByAccountId(workspace.getAccountId()).get() : null);
         return entity;
     }
 
@@ -70,7 +64,7 @@ public class WorkspaceEntityService {
         return workspaceEntityRepository.save(workspaceEntity);
     }
 
-    public WorkspaceEntity upate(WorkspaceEntity workspaceEntity) {
+    public WorkspaceEntity update(WorkspaceEntity workspaceEntity) {
         return workspaceEntityRepository.save(workspaceEntity);
     }
 
@@ -79,18 +73,18 @@ public class WorkspaceEntityService {
     }
 
     public Workspace toWorkspace(WorkspaceEntity entity) {
-        return new Workspace().withId(entity.getId() == null ? null : entity.getId().toString())
+        return new Workspace().withId(entity.getWorkspaceId())
                 .withName(entity.getName())
-                .withAccountId(entity.getAccount() == null ? null : entity.getAccount().getId().toString())
+                .withAccountId(entity.getAccount() == null ? null : entity.getAccount().getAccountId())
                 .withAttributes(entity.getAttributes())
                 .withTemporary(entity.isTemporary());
     }
 
     public List<Workspace> toWorkspaceList(List<WorkspaceEntity> workspaceEntities) {
-        List<Workspace> workspaces = new ArrayList<Workspace>(workspaceEntities.size());
-        for(WorkspaceEntity entity : workspaceEntities){
-            workspaces.add(toWorkspace(entity));
-        }
-        return workspaces;
+        return workspaceEntities.stream().map(this::toWorkspace).collect(Collectors.toList());
+    }
+
+    public Optional<WorkspaceEntity> findByWorkspaceId(String workspaceId) {
+        return workspaceEntityRepository.findByWorkspaceId(workspaceId);
     }
 }

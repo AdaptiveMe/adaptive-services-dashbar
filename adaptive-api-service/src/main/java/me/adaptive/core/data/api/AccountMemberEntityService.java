@@ -26,6 +26,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by panthro on 04/06/15.
@@ -40,20 +43,13 @@ public class AccountMemberEntityService {
     @Autowired
     private UserEntityService userService;
 
-    public List<AccountMemberEntity> findByUserEmailAndRolesContains(String email, String role) {
-        return accountMemberRepository.findByUserEmailAndRolesContains(email, role);
+    public Set<AccountMemberEntity> findByUserEmailAndRolesContains(String email, String role) {
+        return accountMemberRepository.findByUserAliasesContainsAndRolesContains(email, role);
     }
 
-    public List<AccountMemberEntity> findAll() {
-        return accountMemberRepository.findAll();
-    }
 
-    public List<AccountMemberEntity> findByUserEmail(String userEmail) {
-        return accountMemberRepository.findByUserEmail(userEmail);
-    }
-
-    public List<AccountMemberEntity> findByUserId(Long id) {
-        return accountMemberRepository.findByUserId(id);
+    public Set<AccountMemberEntity> findByUserEmail(String userEmail) {
+        return accountMemberRepository.findByUserAliasesContains(userEmail);
     }
 
     public void delete(Iterable<AccountMemberEntity> entities) {
@@ -65,36 +61,37 @@ public class AccountMemberEntityService {
     }
 
     public Member toMember(AccountMemberEntity accountMemberEntity){
-        List<String> roles = new ArrayList<String>(accountMemberEntity.getRoles().size());
+        List<String> roles = new ArrayList<>(accountMemberEntity.getRoles().size());
         CollectionUtils.addAll(roles, accountMemberEntity.getRoles().iterator());
-        return new Member().withAccountId(accountMemberEntity.getAccount().getId().toString()).withUserId(accountMemberEntity.getUser().getEmail()).withRoles(roles);
+        return new Member().withAccountId(accountMemberEntity.getAccount().getAccountId()).withUserId(accountMemberEntity.getUser().getUserId()).withRoles(roles);
     }
 
 
     public List<Member> toMemberList(List<AccountMemberEntity> accountMemberEntityList){
-        List<Member> members = new ArrayList<Member>(accountMemberEntityList.size());
-        for(AccountMemberEntity accountMemberEntity : accountMemberEntityList){
-            members.add(toMember(accountMemberEntity));
-        }
+        List<Member> members = new ArrayList<>(accountMemberEntityList.size());
+        members.addAll(accountMemberEntityList.stream().map(this::toMember).collect(Collectors.toList()));
         return members;
     }
 
-    public List<AccountMemberEntity> findByAccount(AccountEntity accountEntity) {
+    public Set<AccountMemberEntity> findByAccount(AccountEntity accountEntity) {
         return accountMemberRepository.findByAccount(accountEntity);
     }
 
-    public List<AccountMemberEntity> findByUserEmailAndAccountId(String userEmail, Long accountId) {
-        return accountMemberRepository.findByUserEmailAndAccountId(userEmail, accountId);
+    public Set<AccountMemberEntity> findByAccountId(String accountId) {
+        return accountMemberRepository.findByAccountAccountId(accountId);
+    }
+
+    public Set<AccountMemberEntity> findByUserIdAndAccountId(String userEmail, String accountId) {
+        return accountMemberRepository.findByUserUserIdAndAccountAccountId(userEmail, accountId);
     }
 
     public AccountMemberEntity create(Member member){
-
-        UserEntity userEntity = userService.findByEmail(member.getUserId());
+        Optional<UserEntity> userEntity = userService.findByUserId(member.getUserId());
         AccountMemberEntity accountMemberEntity = new AccountMemberEntity();
         CollectionUtils.addAll(accountMemberEntity.getRoles(),member.getRoles().iterator());
-        AccountEntity account = accountService.findOne(Long.valueOf(member.getAccountId()));
-        accountMemberEntity.setUser(userEntity);
-        accountMemberEntity.setAccount(account);
+        Optional<AccountEntity> account = accountService.findByAccountId(member.getAccountId());
+        accountMemberEntity.setUser(userEntity.get());
+        accountMemberEntity.setAccount(account.get());
         return accountMemberRepository.save(accountMemberEntity);
     }
 

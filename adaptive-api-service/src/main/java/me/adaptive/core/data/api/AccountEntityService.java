@@ -19,11 +19,10 @@ import me.adaptive.core.data.domain.AccountEntity;
 import me.adaptive.core.data.repo.AccountRepository;
 import org.eclipse.che.api.account.server.dao.Account;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
+import java.util.Optional;
 
 /**
  * Created by panthro on 04/06/15.
@@ -34,53 +33,46 @@ public class AccountEntityService {
     @Autowired
     AccountRepository accountRepository;
 
-    public List<AccountEntity> findAll() {
-        return accountRepository.findAll();
-    }
-
-    public AccountEntity findByName(String name) {
+    public Optional<AccountEntity> findByName(String name) {
         return accountRepository.findByName(name);
-    }
-
-    public AccountEntity findOne(Long aLong) {
-        return accountRepository.findOne(aLong);
-    }
-
-    public long count() {
-        return accountRepository.count();
     }
 
     public void delete(AccountEntity entity) {
         accountRepository.delete(entity);
     }
 
-    public AccountEntity findOne(Specification<AccountEntity> spec) {
-        return accountRepository.findOne(spec);
-    }
+    public AccountEntity createAccountEntity(Account account) {
 
-    public AccountEntity createAccountEntity(Account account){
-        AccountEntity accountEntity = StringUtils.hasText(account.getId()) ? accountRepository.findOne(Long.valueOf(account.getId())) : null ;
-        if(accountEntity == null){
-            accountEntity = accountRepository.save(toAccountEntity(account));
+        Optional<AccountEntity> optional = accountRepository.findByAccountId(account.getId());
+        if (!optional.isPresent()) {
+            return accountRepository.save(toAccountEntity(account));
         }
-        return accountEntity;
+        return optional.get();
     }
 
-    public boolean exists(Account account){
-        return  (StringUtils.hasText(account.getId()) && accountRepository.findOne(Long.valueOf(account.getId())) != null)
+    public boolean exists(Account account) {
+        return (StringUtils.hasText(account.getId()) && accountRepository.findOne(Long.valueOf(account.getId())) != null)
                 ||
                 (StringUtils.hasText(account.getName()) && accountRepository.findByName(account.getName()) != null);
     }
 
-    public AccountEntity toAccountEntity(Account account){
-        return new AccountEntity(account.getId() != null ? Long.valueOf(account.getId()) : null,account.getName(),account.getAttributes());
+    public AccountEntity toAccountEntity(Account account) {
+        AccountEntity accountEntity = new AccountEntity();
+        accountEntity.setAttributes(account.getAttributes());
+        accountEntity.setAccountId(account.getId());
+        accountEntity.setName(account.getName());
+        return accountEntity;
     }
 
-    public Account toAccount(AccountEntity accountEntity){
-        return new Account().withId(accountEntity.getId().toString()).withName(accountEntity.getName()).withAttributes(accountEntity.getAttributes());
+    public Account toAccount(AccountEntity accountEntity) {
+        return new Account().withId(accountEntity.getAccountId()).withName(accountEntity.getName()).withAttributes(accountEntity.getAttributes());
     }
 
     public AccountEntity save(AccountEntity entity) {
         return accountRepository.save(entity);
+    }
+
+    public Optional<AccountEntity> findByAccountId(String id) {
+        return accountRepository.findByAccountId(id);
     }
 }

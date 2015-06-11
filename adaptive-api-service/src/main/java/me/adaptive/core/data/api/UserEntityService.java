@@ -17,13 +17,16 @@ package me.adaptive.core.data.api;
 
 import me.adaptive.core.data.domain.UserEntity;
 import me.adaptive.core.data.repo.UserRepository;
-import org.apache.commons.codec.digest.DigestUtils;
+import me.adaptive.core.data.util.PasswordHash;
 import org.apache.commons.collections.CollectionUtils;
 import org.eclipse.che.api.user.server.dao.User;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Optional;
 
 /**
  * Created by panthro on 04/06/15.
@@ -31,38 +34,21 @@ import java.util.List;
 @Service
 public class UserEntityService {
 
-    private static final String PASSWORD_SALT = "1AKac7etAyhdV7aT2A8kf45Axpjy44rNs0mMnxYq";
-
     @Autowired
     private UserRepository userRepository;
 
-    public UserEntity findByEmail(String email) {
-        return userRepository.findByEmail(email);
+    public Optional<UserEntity> findByEmail(String email) {
+        return userRepository.findByAliasesContains(email);
     }
 
-    public UserEntity findByAliasesContains(String alias) {
+    public Optional<UserEntity> findByAliasesContains(String alias) {
         return userRepository.findByAliasesContains(alias);
-    }
-
-    public List<UserEntity> findAll() {
-        return userRepository.findAll();
     }
 
     public UserEntity save(UserEntity entity) {
         return userRepository.save(entity);
     }
 
-    public UserEntity findOne(Long aLong) {
-        return userRepository.findOne(aLong);
-    }
-
-    public boolean exists(Long aLong) {
-        return userRepository.exists(aLong);
-    }
-
-    public long count() {
-        return userRepository.count();
-    }
 
     public void delete(Long aLong) {
         userRepository.delete(aLong);
@@ -73,23 +59,41 @@ public class UserEntityService {
     }
 
     public User toUser(UserEntity userEntity){
-        User user = new User().withId(userEntity.getId().toString()).withEmail(userEntity.getEmail()).withPassword(userEntity.getPasswordHash());
-        CollectionUtils.addAll(user.getAliases(),userEntity.getAliases().iterator());
+        User user = new User().withId(userEntity.getUserId()).withEmail(userEntity.getAliases().stream().findFirst().get()).withPassword(userEntity.getPasswordHash());
+        CollectionUtils.addAll(user.getAliases(), userEntity.getAliases().iterator());
         return user;
     }
     public UserEntity toUserEntity(User user){
         UserEntity userEntity = new UserEntity();
-        userEntity.setEmail(user.getEmail());
-        userEntity.setId(user.getId() != null ? Long.valueOf(user.getId()) : null);
+        userEntity.getAliases().add(user.getEmail());
+        userEntity.setUserId(user.getId());
         CollectionUtils.addAll(userEntity.getAliases(), user.getAliases().iterator());
         return userEntity;
     }
 
-    public String generatePasswordHash(String password){
-        return new String(DigestUtils.sha256Hex(new StringBuilder(password).append(PASSWORD_SALT).toString()));
+    public String generatePasswordHash(String password) throws InvalidKeySpecException, NoSuchAlgorithmException {
+        try {
+            return PasswordHash.createHash(password);
+        } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+            LoggerFactory.getLogger(UserEntityService.class).warn("Error generating password", e);
+            return null;
+        }
     }
 
-    public static void main(String[] args){
+    public boolean validatePassword(String password, String hash) {
+        try {
+            return PasswordHash.validatePassword(password, hash);
+        } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+            LoggerFactory.getLogger(UserEntityService.class).warn("Error validating password", e);
+            return false;
+        }
+    }
+
+    public static void main(String[] args) throws InvalidKeySpecException, NoSuchAlgorithmException {
         System.out.println(new UserEntityService().generatePasswordHash("123456"));
+    }
+
+    public Optional<UserEntity> findByUserId(String userId) {
+        return userRepository.findByUserId(userId);
     }
 }

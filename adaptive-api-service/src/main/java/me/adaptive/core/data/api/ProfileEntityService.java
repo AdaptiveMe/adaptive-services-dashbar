@@ -18,11 +18,12 @@ package me.adaptive.core.data.api;
 
 
 import me.adaptive.core.data.domain.ProfileEntity;
-import me.adaptive.core.data.domain.UserEntity;
 import me.adaptive.core.data.repo.ProfileEntityRepository;
 import org.eclipse.che.api.user.server.dao.Profile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 /** Created by panthro on 08/06/15.
  */
@@ -33,16 +34,8 @@ public class ProfileEntityService {
     @Autowired
     private UserEntityService userService;
 
-    public ProfileEntity findByUser(UserEntity user) {
-        return profileEntityRepository.findByUser(user);
-    }
-
     public ProfileEntity save(ProfileEntity profile) {
         return profileEntityRepository.save(profile);
-    }
-
-    public ProfileEntity findOne(Long aLong) {
-        return profileEntityRepository.findOne(aLong);
     }
 
     public void delete(Long aLong) {
@@ -56,14 +49,18 @@ public class ProfileEntityService {
     public ProfileEntity toProfileEntity(Profile profile){
         ProfileEntity entity = new ProfileEntity();
         entity.setAttributes(profile.getAttributes());
-        entity.setId(profile.getId() == null ? null : Long.valueOf(profile.getId()));
-        entity.setUser(profile.getUserId() == null ? null : userService.findOne(Long.valueOf(profile.getId())));
+        entity.setProfileId(profile.getId());
+        entity.setUser(profile.getUserId() == null ? null : userService.findByUserId(profile.getUserId()).get());
         return entity;
     }
 
     public Profile toProfile(ProfileEntity entity){
-        return new Profile().withId(entity.getId() == null ? null : entity.getId().toString())
+        return new Profile().withId(entity.getProfileId())
                 .withAttributes(entity.getAttributes())
-                .withUserId(entity.getUser() == null ? null : entity.getUser().getId().toString());
+                .withUserId(entity.getUser() == null ? null : entity.getUser().getUserId());
+    }
+
+    public Optional<ProfileEntity> findByProfileId(String id) {
+        return profileEntityRepository.findByProfileId(id);
     }
 }
