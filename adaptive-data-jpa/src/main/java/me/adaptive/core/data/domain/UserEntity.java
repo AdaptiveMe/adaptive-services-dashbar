@@ -42,11 +42,13 @@ public class UserEntity extends BaseEntity {
     private String passwordHash;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_roles")
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"))
+    @Column(name = "role")
     private Set<String> roles = new HashSet<String>();
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_aliases")
+    @CollectionTable(name = "user_aliases", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"))
+    @Column(name = "alias")
     private Set<String> aliases = new HashSet<>();
 
     public String getUserId() {

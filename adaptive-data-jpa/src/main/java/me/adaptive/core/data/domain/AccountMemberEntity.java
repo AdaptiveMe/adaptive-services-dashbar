@@ -38,7 +38,8 @@ public class AccountMemberEntity extends BaseEntity {
     private AccountEntity account;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "account_member_roles")
+    @CollectionTable(name = "account_member_roles", joinColumns = @JoinColumn(name = "account_id", referencedColumnName = "id"))
+    @Column(name = "role")
     private Set<String> roles = new HashSet<String>();
 
     public UserEntity getUser() {
