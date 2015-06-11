@@ -29,6 +29,13 @@ import java.util.Map;
 @Table(name = "account")
 public class AccountEntity extends BaseEntity {
 
+
+    @NotNull
+    @Max(value = 100, message = "Account id can't have more than 100 characters")
+    @Min(value = 3, message = "Account id need to be have at least 3 characters")
+    @Column(name = "account_id", unique = true)
+    private String accountId;
+
     @NotNull
     @Column(name = "name", length = 100)
     @Max(value = 100, message = "Account name can't have more than 100 characters")
@@ -41,14 +48,12 @@ public class AccountEntity extends BaseEntity {
     @CollectionTable(name = "account_attributes", joinColumns = @JoinColumn(name = "account_id"))
     private Map<String, String> attributes;
 
-    public AccountEntity() {
-
+    public String getAccountId() {
+        return accountId;
     }
 
-    public AccountEntity(Long id, String name, Map<String, String> attributes) {
-        super(id);
-        this.name = name;
-        this.attributes = attributes;
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
     }
 
     public String getName() {
@@ -67,10 +72,37 @@ public class AccountEntity extends BaseEntity {
         this.attributes = attributes;
     }
 
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AccountEntity)) return false;
+        if (!super.equals(o)) return false;
+
+        AccountEntity that = (AccountEntity) o;
+
+        if (getAccountId() != null ? !getAccountId().equals(that.getAccountId()) : that.getAccountId() != null)
+            return false;
+        if (getName() != null ? !getName().equals(that.getName()) : that.getName() != null) return false;
+        return !(getAttributes() != null ? !getAttributes().equals(that.getAttributes()) : that.getAttributes() != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (getAccountId() != null ? getAccountId().hashCode() : 0);
+        result = 31 * result + (getName() != null ? getName().hashCode() : 0);
+        result = 31 * result + (getAttributes() != null ? getAttributes().hashCode() : 0);
+        return result;
+    }
+
     @Override
     public String toString() {
         return "AccountEntity{" +
-                "name='" + name + '\'' +
+                "accountId='" + accountId + '\'' +
+                ", name='" + name + '\'' +
+                ", attributes=" + attributes +
                 '}';
     }
 }

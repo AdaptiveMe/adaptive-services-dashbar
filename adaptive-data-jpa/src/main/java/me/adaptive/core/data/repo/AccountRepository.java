@@ -21,11 +21,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 /**
  * Created by panthro on 04/06/15.
  */
 @Repository
 public interface AccountRepository extends JpaRepository<AccountEntity, Long>, JpaSpecificationExecutor<AccountEntity> {
 
-    public AccountEntity findByName(String name);
+    Optional<AccountEntity> findByName(String name);
+
+    Optional<AccountEntity> findByAccountId(String accountId);
 }

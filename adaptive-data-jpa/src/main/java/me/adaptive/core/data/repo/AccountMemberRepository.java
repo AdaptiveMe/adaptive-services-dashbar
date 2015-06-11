@@ -22,7 +22,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * Created by panthro on 04/06/15.
@@ -30,13 +30,15 @@ import java.util.List;
 @Repository
 public interface AccountMemberRepository extends JpaRepository<AccountMemberEntity, Long>, JpaSpecificationExecutor<AccountMemberEntity> {
 
-    List<AccountMemberEntity> findByUserEmailAndRolesContains(String email, String role);
+    Set<AccountMemberEntity> findByUserEmailAndRolesContains(String email, String role);
 
-    List<AccountMemberEntity> findByUserEmail(String userEmail);
+    Set<AccountMemberEntity> findByUserEmail(String userEmail);
 
-    List<AccountMemberEntity> findByAccount(AccountEntity accountEntity);
+    Set<AccountMemberEntity> findByAccount(AccountEntity accountEntity);
 
-    List<AccountMemberEntity> findByUserEmailAndAccountId(String userEmail, Long accountId);
+    Set<AccountMemberEntity> findByUserId(Long id);
 
-    List<AccountMemberEntity> findByUserId(Long id);
+    Set<AccountMemberEntity> findByUserUserIdAndAccountAccountId(String userEmail, String accountId);
+
+    Set<AccountMemberEntity> findByAccountAccounId(String accountId);
 }

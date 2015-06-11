@@ -59,12 +59,13 @@ public abstract class BaseEntity {
 
     }
 
-    public BaseEntity(Long id) {
-        this.id = id;
-    }
-
+    @SuppressWarnings("unused")
     public Date getCreatedAt() {
         return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 
     public Long getId() {
@@ -75,6 +76,7 @@ public abstract class BaseEntity {
         this.id = id;
     }
 
+    @SuppressWarnings("unused")
     public Date getUpdatedAt() {
         return updatedAt;
     }
@@ -83,12 +85,12 @@ public abstract class BaseEntity {
         this.updatedAt = updatedAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public Integer getVersion() {
         return this.version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 
     @PrePersist

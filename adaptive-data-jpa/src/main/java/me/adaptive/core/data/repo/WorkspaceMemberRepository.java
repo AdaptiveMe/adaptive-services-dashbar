@@ -22,7 +22,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Created by panthro on 04/06/15.
@@ -30,13 +31,13 @@ import java.util.List;
 @Repository
 public interface WorkspaceMemberRepository extends JpaRepository<WorkspaceMemberEntity, Long>, JpaSpecificationExecutor<WorkspaceMemberEntity> {
 
-    List<WorkspaceMemberEntity> findByUserEmailAndRolesContains(String email, String role);
+    Set<WorkspaceMemberEntity> findByUserEmailAndRolesContains(String email, String role);
 
-    List<WorkspaceMemberEntity> findByUserEmail(String userEmail);
+    Set<WorkspaceMemberEntity> findByUserEmail(String userEmail);
 
-    List<WorkspaceMemberEntity> findByWorkspace(WorkspaceEntity workspaceEntity);
+    Set<WorkspaceMemberEntity> findByWorkspace(WorkspaceEntity workspaceEntity);
 
-    WorkspaceMemberEntity findByUserIdAndWorkspaceId(Long userId, Long workspaceId);
+    Optional<WorkspaceMemberEntity> findByUserIdAndWorkspaceId(Long userId, Long workspaceId);
 
-    List<WorkspaceMemberEntity> findByUserId(Long id);
+    Set<WorkspaceMemberEntity> findByUserId(Long id);
 }

@@ -40,15 +40,6 @@ public class UserTokenEntity extends BaseEntity {
     @NotNull
     private Boolean active = true;
 
-    public UserTokenEntity() {
-        super();
-    }
-
-    public UserTokenEntity(UserEntity user, String token) {
-        this.user = user;
-        this.token = token;
-    }
-
     public UserEntity getUser() {
         return user;
     }
@@ -71,5 +62,37 @@ public class UserTokenEntity extends BaseEntity {
 
     public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UserTokenEntity)) return false;
+        if (!super.equals(o)) return false;
+
+        UserTokenEntity that = (UserTokenEntity) o;
+
+        if (getUser() != null ? !getUser().equals(that.getUser()) : that.getUser() != null) return false;
+        if (getToken() != null ? !getToken().equals(that.getToken()) : that.getToken() != null) return false;
+        return !(active != null ? !active.equals(that.active) : that.active != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (getUser() != null ? getUser().hashCode() : 0);
+        result = 31 * result + (getToken() != null ? getToken().hashCode() : 0);
+        result = 31 * result + (active != null ? active.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "UserTokenEntity{" +
+                "user=" + user +
+                ", token='" + token + '\'' +
+                ", active=" + active +
+                '}';
     }
 }

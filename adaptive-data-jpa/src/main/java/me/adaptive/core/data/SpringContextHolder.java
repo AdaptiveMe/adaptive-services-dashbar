@@ -34,13 +34,13 @@ public class SpringContextHolder implements ApplicationContextAware {
         }
     }
 
+    public static ApplicationContext getApplicationContext() {
+        return applicationContext;
+    }
+
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         if (applicationContext == null) {
             SpringContextHolder.applicationContext = applicationContext;
         }
-    }
-
-    public static ApplicationContext getApplicationContext() {
-        return applicationContext;
     }
 }

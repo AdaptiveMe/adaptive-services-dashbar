@@ -17,6 +17,8 @@
 package me.adaptive.core.data.domain;
 
 import javax.persistence.*;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.util.Map;
 
@@ -32,6 +34,12 @@ public class ProfileEntity extends BaseEntity {
     @NotNull
     private UserEntity user;
 
+    @NotNull
+    @Max(value = 100, message = "User id can't have more than 100 characters")
+    @Min(value = 3, message = "User id need to be have at least 3 characters")
+    @Column(name = "profile_id", unique = true)
+    private String profileId;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @MapKeyColumn(name = "name")
     @Column(name = "value")
@@ -44,6 +52,14 @@ public class ProfileEntity extends BaseEntity {
 
     public void setUser(UserEntity user) {
         this.user = user;
+    }
+
+    public String getProfileId() {
+        return profileId;
+    }
+
+    public void setProfileId(String profileId) {
+        this.profileId = profileId;
     }
 
     public Map<String, String> getAttributes() {
@@ -60,10 +76,12 @@ public class ProfileEntity extends BaseEntity {
         if (!(o instanceof ProfileEntity)) return false;
         if (!super.equals(o)) return false;
 
-        ProfileEntity that = (ProfileEntity) o;
+        ProfileEntity entity = (ProfileEntity) o;
 
-        if (getUser() != null ? !getUser().equals(that.getUser()) : that.getUser() != null) return false;
-        return !(getAttributes() != null ? !getAttributes().equals(that.getAttributes()) : that.getAttributes() != null);
+        if (getUser() != null ? !getUser().equals(entity.getUser()) : entity.getUser() != null) return false;
+        if (getProfileId() != null ? !getProfileId().equals(entity.getProfileId()) : entity.getProfileId() != null)
+            return false;
+        return !(getAttributes() != null ? !getAttributes().equals(entity.getAttributes()) : entity.getAttributes() != null);
 
     }
 
@@ -71,6 +89,7 @@ public class ProfileEntity extends BaseEntity {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (getUser() != null ? getUser().hashCode() : 0);
+        result = 31 * result + (getProfileId() != null ? getProfileId().hashCode() : 0);
         result = 31 * result + (getAttributes() != null ? getAttributes().hashCode() : 0);
         return result;
     }
@@ -79,6 +98,7 @@ public class ProfileEntity extends BaseEntity {
     public String toString() {
         return "ProfileEntity{" +
                 "user=" + user +
+                ", profileId='" + profileId + '\'' +
                 ", attributes=" + attributes +
                 '}';
     }

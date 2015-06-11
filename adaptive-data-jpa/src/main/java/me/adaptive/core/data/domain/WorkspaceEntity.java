@@ -17,6 +17,8 @@
 package me.adaptive.core.data.domain;
 
 import javax.persistence.*;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.util.HashMap;
@@ -29,14 +31,19 @@ import java.util.Map;
 @Table(name = "workspace")
 public class WorkspaceEntity extends BaseEntity {
 
-    @Transient
     private boolean temporary;
+
+    @NotNull
+    @Max(value = 100, message = "Workspace id can't have more than 100 characters")
+    @Min(value = 3, message = "Workspace id need to be have at least 3 characters")
+    @Column(name = "workspace_id", unique = true)
+    private String workspaceId;
 
     @NotNull
     @Pattern(regexp = "[\\w][\\w\\.\\-]{1,18}[\\w]")
     private String name;
 
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @NotNull
     private AccountEntity account;
 
@@ -45,6 +52,14 @@ public class WorkspaceEntity extends BaseEntity {
     @Column(name = "value")
     @CollectionTable(name = "workspace_attributes", joinColumns = @JoinColumn(name = "workspace_id"))
     private Map<String, String> attributes = new HashMap<String, String>();
+
+    public String getWorkspaceId() {
+        return workspaceId;
+    }
+
+    public void setWorkspaceId(String workspaceId) {
+        this.workspaceId = workspaceId;
+    }
 
     public boolean isTemporary() {
         return temporary;
@@ -84,12 +99,15 @@ public class WorkspaceEntity extends BaseEntity {
         if (!(o instanceof WorkspaceEntity)) return false;
         if (!super.equals(o)) return false;
 
-        WorkspaceEntity that = (WorkspaceEntity) o;
+        WorkspaceEntity entity = (WorkspaceEntity) o;
 
-        if (isTemporary() != that.isTemporary()) return false;
-        if (getName() != null ? !getName().equals(that.getName()) : that.getName() != null) return false;
-        if (getAccount() != null ? !getAccount().equals(that.getAccount()) : that.getAccount() != null) return false;
-        return !(getAttributes() != null ? !getAttributes().equals(that.getAttributes()) : that.getAttributes() != null);
+        if (isTemporary() != entity.isTemporary()) return false;
+        if (getWorkspaceId() != null ? !getWorkspaceId().equals(entity.getWorkspaceId()) : entity.getWorkspaceId() != null)
+            return false;
+        if (getName() != null ? !getName().equals(entity.getName()) : entity.getName() != null) return false;
+        if (getAccount() != null ? !getAccount().equals(entity.getAccount()) : entity.getAccount() != null)
+            return false;
+        return !(getAttributes() != null ? !getAttributes().equals(entity.getAttributes()) : entity.getAttributes() != null);
 
     }
 
@@ -97,6 +115,7 @@ public class WorkspaceEntity extends BaseEntity {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (isTemporary() ? 1 : 0);
+        result = 31 * result + (getWorkspaceId() != null ? getWorkspaceId().hashCode() : 0);
         result = 31 * result + (getName() != null ? getName().hashCode() : 0);
         result = 31 * result + (getAccount() != null ? getAccount().hashCode() : 0);
         result = 31 * result + (getAttributes() != null ? getAttributes().hashCode() : 0);
@@ -106,8 +125,11 @@ public class WorkspaceEntity extends BaseEntity {
     @Override
     public String toString() {
         return "WorkspaceEntity{" +
-                "name='" + name + '\'' +
+                "temporary=" + temporary +
+                ", workspaceId='" + workspaceId + '\'' +
+                ", name='" + name + '\'' +
                 ", account=" + account +
+                ", attributes=" + attributes +
                 '}';
     }
 }

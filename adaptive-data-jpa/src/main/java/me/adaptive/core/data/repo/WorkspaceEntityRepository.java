@@ -21,7 +21,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Created by panthro on 04/06/15.
@@ -29,7 +30,10 @@ import java.util.List;
 @Repository
 public interface WorkspaceEntityRepository extends JpaRepository<WorkspaceEntity, Long>, JpaSpecificationExecutor<WorkspaceEntity> {
 
-    public WorkspaceEntity findByName(String name);
+    Optional<WorkspaceEntity> findByName(String name);
 
-    public List<WorkspaceEntity> findByAccountId(Long accountId);
+    Set<WorkspaceEntity> findByAccountAccountId(Long accountId);
+
+    Optional<WorkspaceEntity> findByWorkspaceId(String workspaceId);
+
 }

@@ -17,6 +17,8 @@
 package me.adaptive.core.data.domain;
 
 import javax.persistence.*;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.util.HashSet;
@@ -40,7 +42,11 @@ public class UserEntity extends BaseEntity {
     @Column(unique = true)
     @NotNull
     protected String email;
-
+    @NotNull
+    @Max(value = 100, message = "User id can't have more than 100 characters")
+    @Min(value = 3, message = "User id need to be have at least 3 characters")
+    @Column(name = "user_id", unique = true)
+    private String userId;
     @NotNull
     private String passwordHash;
 
@@ -51,6 +57,14 @@ public class UserEntity extends BaseEntity {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_aliases")
     private Set<String> aliases = new HashSet<String>();
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 
     public String getFirstName() {
         return firstName;
@@ -104,11 +118,50 @@ public class UserEntity extends BaseEntity {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UserEntity)) return false;
+        if (!super.equals(o)) return false;
+
+        UserEntity that = (UserEntity) o;
+
+        if (getUserId() != null ? !getUserId().equals(that.getUserId()) : that.getUserId() != null) return false;
+        if (getFirstName() != null ? !getFirstName().equals(that.getFirstName()) : that.getFirstName() != null)
+            return false;
+        if (getLastName() != null ? !getLastName().equals(that.getLastName()) : that.getLastName() != null)
+            return false;
+        if (getEmail() != null ? !getEmail().equals(that.getEmail()) : that.getEmail() != null) return false;
+        if (getPasswordHash() != null ? !getPasswordHash().equals(that.getPasswordHash()) : that.getPasswordHash() != null)
+            return false;
+        if (getRoles() != null ? !getRoles().equals(that.getRoles()) : that.getRoles() != null) return false;
+        return !(getAliases() != null ? !getAliases().equals(that.getAliases()) : that.getAliases() != null);
+
+    }
+
+    @Override
     public String toString() {
         return "UserEntity{" +
-                "firstName='" + firstName + '\'' +
+                "userId='" + userId + '\'' +
+                ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
+                ", passwordHash='" + passwordHash + '\'' +
+                ", roles=" + roles +
+                ", aliases=" + aliases +
                 '}';
     }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (getUserId() != null ? getUserId().hashCode() : 0);
+        result = 31 * result + (getFirstName() != null ? getFirstName().hashCode() : 0);
+        result = 31 * result + (getLastName() != null ? getLastName().hashCode() : 0);
+        result = 31 * result + (getEmail() != null ? getEmail().hashCode() : 0);
+        result = 31 * result + (getPasswordHash() != null ? getPasswordHash().hashCode() : 0);
+        result = 31 * result + (getRoles() != null ? getRoles().hashCode() : 0);
+        result = 31 * result + (getAliases() != null ? getAliases().hashCode() : 0);
+        return result;
+    }
+
 }

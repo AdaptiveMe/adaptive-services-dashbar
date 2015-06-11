@@ -21,11 +21,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 /**
  * Created by panthro on 04/06/15.
  */
 @Repository
 public interface ProfileEntityRepository extends JpaRepository<ProfileEntity, Long>, JpaSpecificationExecutor<ProfileEntity> {
 
-    public ProfileEntity findByUser(UserEntity user);
+    Optional<ProfileEntity> findByUser(UserEntity user);
+
+    Optional<ProfileEntity> findByProfileId(String id);
 }

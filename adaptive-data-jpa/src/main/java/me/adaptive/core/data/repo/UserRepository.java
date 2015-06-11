@@ -21,13 +21,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 /**
  * Created by panthro on 04/06/15.
  */
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long>, JpaSpecificationExecutor<UserEntity> {
 
-    public UserEntity findByEmail(String email);
+    Optional<UserEntity> findByEmail(String email);
 
-    public UserEntity findByAliasesContains(String alias);
+    Optional<UserEntity> findByAliasesContains(String alias);
+
+    Optional<UserEntity> findByUserId(String userId);
 }

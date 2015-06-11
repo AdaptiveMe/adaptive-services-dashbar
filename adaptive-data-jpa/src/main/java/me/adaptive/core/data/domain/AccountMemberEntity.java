@@ -64,4 +64,36 @@ public class AccountMemberEntity extends BaseEntity {
     public void setAccount(AccountEntity account) {
         this.account = account;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AccountMemberEntity)) return false;
+        if (!super.equals(o)) return false;
+
+        AccountMemberEntity that = (AccountMemberEntity) o;
+
+        if (getUser() != null ? !getUser().equals(that.getUser()) : that.getUser() != null) return false;
+        if (getAccount() != null ? !getAccount().equals(that.getAccount()) : that.getAccount() != null) return false;
+        return !(getRoles() != null ? !getRoles().equals(that.getRoles()) : that.getRoles() != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (getUser() != null ? getUser().hashCode() : 0);
+        result = 31 * result + (getAccount() != null ? getAccount().hashCode() : 0);
+        result = 31 * result + (getRoles() != null ? getRoles().hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "AccountMemberEntity{" +
+                "user=" + user +
+                ", account=" + account +
+                ", roles=" + roles +
+                '}';
+    }
 }

@@ -22,7 +22,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.Optional;
 
 /**
  * Created by panthro on 04/06/15.
@@ -30,7 +30,7 @@ import java.util.List;
 @Repository
 public interface UserTokenRepository extends JpaRepository<UserTokenEntity, Long>, JpaSpecificationExecutor<UserTokenEntity> {
 
-    public UserTokenEntity findByToken(String token);
+    Optional<UserTokenEntity> findByToken(String token);
 
-    public List<UserTokenEntity> findByUserAndActiveTrue(UserEntity user);
+    Optional<UserTokenEntity> findByUserAndActiveTrue(UserEntity user);
 }
