@@ -70,7 +70,7 @@ public class WorkspaceMemberService {
     }
 
 
-    public List<Member> toMemberList(List<WorkspaceMemberEntity> workspaceMemberEntities){
+    public List<Member> toMemberList(Set<WorkspaceMemberEntity> workspaceMemberEntities) {
         List<Member> members = new ArrayList<>(workspaceMemberEntities.size());
         members.addAll(workspaceMemberEntities.stream().map(this::toMember).collect(Collectors.toList()));
         return members;
@@ -80,7 +80,7 @@ public class WorkspaceMemberService {
         return workspaceMemberRepository.findByWorkspace(workspaceEntity);
     }
 
-    public Optional<WorkspaceMemberEntity> findByUserIdAndWorkspaceId(String userId, Long workspaceId) {
+    public Optional<WorkspaceMemberEntity> findByUserIdAndWorkspaceId(String userId, String workspaceId) {
         return workspaceMemberRepository.findByUserUserIdAndWorkspaceWorkspaceId(userId, workspaceId);
     }
 
@@ -94,5 +94,9 @@ public class WorkspaceMemberService {
         entity.setUser(member.getUserId() == null ? null : userService.findByUserId(member.getUserId()).get());
         entity.setWorkspace(member.getWorkspaceId() == null ? null : workspaceEntityService.findByWorkspaceId(member.getWorkspaceId()).get());
         return entity;
+    }
+
+    public Set<WorkspaceMemberEntity> findByWorkspaceId(String workspaceId) {
+        return workspaceMemberRepository.findByWorkspaceWorkspaceId(workspaceId);
     }
 }

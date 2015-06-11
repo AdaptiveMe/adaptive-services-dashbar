@@ -42,7 +42,7 @@ public class WorkspaceEntityService {
         return workspaceEntityRepository.findByName(name);
     }
 
-    public Set<WorkspaceEntity> findByAccountId(Long accountId) {
+    public Set<WorkspaceEntity> findByAccountId(String accountId) {
         return workspaceEntityRepository.findByAccountAccountId(accountId);
     }
 
@@ -64,8 +64,8 @@ public class WorkspaceEntityService {
         return workspaceEntityRepository.save(workspaceEntity);
     }
 
-    public void delete(Long id) {
-        workspaceEntityRepository.delete(id);
+    public void delete(WorkspaceEntity workspaceEntity) {
+        workspaceEntityRepository.delete(workspaceEntity);
     }
 
     public Workspace toWorkspace(WorkspaceEntity entity) {
@@ -76,7 +76,7 @@ public class WorkspaceEntityService {
                 .withTemporary(entity.isTemporary());
     }
 
-    public List<Workspace> toWorkspaceList(List<WorkspaceEntity> workspaceEntities) {
+    public List<Workspace> toWorkspaceList(Set<WorkspaceEntity> workspaceEntities) {
         return workspaceEntities.stream().map(this::toWorkspace).collect(Collectors.toList());
     }
 

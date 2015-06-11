@@ -38,8 +38,8 @@ public class ProfileEntityService {
         return profileEntityRepository.save(profile);
     }
 
-    public void delete(Long aLong) {
-        profileEntityRepository.delete(aLong);
+    public void delete(ProfileEntity entity) {
+        profileEntityRepository.delete(entity);
     }
 
     public ProfileEntity toProfileEntity(Profile profile, Optional<ProfileEntity> profileEntity) {

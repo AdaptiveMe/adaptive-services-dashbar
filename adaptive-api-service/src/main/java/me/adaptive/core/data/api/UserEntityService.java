@@ -41,17 +41,8 @@ public class UserEntityService {
         return userRepository.findByAliasesContains(email);
     }
 
-    public Optional<UserEntity> findByAliasesContains(String alias) {
-        return userRepository.findByAliasesContains(alias);
-    }
-
     public UserEntity save(UserEntity entity) {
         return userRepository.save(entity);
-    }
-
-
-    public void delete(Long aLong) {
-        userRepository.delete(aLong);
     }
 
     public void delete(UserEntity entity) {
