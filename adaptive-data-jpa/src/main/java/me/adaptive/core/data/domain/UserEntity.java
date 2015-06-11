@@ -37,8 +37,6 @@ public class UserEntity extends BaseEntity {
     private String userId;
 
     @NotNull
-    private String passwordSalt;
-    @NotNull
     private String passwordHash;
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -66,14 +64,6 @@ public class UserEntity extends BaseEntity {
 
     public void setRoles(Set<String> roles) {
         this.roles = roles;
-    }
-
-    public String getPasswordSalt() {
-        return passwordSalt;
-    }
-
-    public void setPasswordSalt(String passwordSalt) {
-        this.passwordSalt = passwordSalt;
     }
 
     public String getPasswordHash() {
