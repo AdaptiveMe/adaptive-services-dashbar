@@ -18,13 +18,17 @@ package me.adaptive.che.infrastructure.dao;
 
 import me.adaptive.core.data.api.UserEntityService;
 import me.adaptive.core.data.domain.UserEntity;
-import org.apache.commons.collections.CollectionUtils;
 import org.eclipse.che.api.core.ConflictException;
 import org.eclipse.che.api.core.NotFoundException;
 import org.eclipse.che.api.user.server.dao.User;
 import org.eclipse.che.api.user.server.dao.UserDao;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Optional;
 
 @Service("UserDao")
 public class AdaptiveUserDao implements UserDao {
@@ -35,67 +39,79 @@ public class AdaptiveUserDao implements UserDao {
     @Override
     public boolean authenticate(String alias, String password) throws NotFoundException {
 
-        UserEntity user = userEntityService.findByEmail(alias);
-        if(user == null){
-            user = userEntityService.findByAliasesContains(alias);
-        }
-        if(user == null){
+        Optional<UserEntity> user = userEntityService.findByEmail(alias);
+        if (!user.isPresent()) {
             throw new NotFoundException(String.format("User %s not found",alias));
         }
-        return userEntityService.generatePasswordHash(password).equals(user.getPasswordHash());
+        return userEntityService.validatePassword(password, user.get().getPasswordHash());
     }
 
     @Override
     public void create(User user) throws ConflictException {
-        UserEntity userEntity = userEntityService.findByEmail(user.getEmail());
-        if(userEntity != null){
+        Optional<UserEntity> userEntity = userEntityService.findByEmail(user.getEmail());
+        if (!userEntity.isPresent()) {
             throw new ConflictException(String.format("Unable create new user '%s'. User email is already in use.", user.getEmail()));
         }
-        userEntity = userEntityService.toUserEntity(user);
-        //TODO check how we should handle this ID thing
-        userEntity.setId(null);
-        userEntity.setPasswordHash(user.getPassword());
-        userEntity.getRoles().add("user");
-        userEntityService.save(userEntity);
+
+        userEntity = userEntityService.findByUserId(user.getId());
+        if (userEntity.isPresent()) {
+            throw new ConflictException(String.format("Unable create new user '%s'. User id is already in use.", user.getId()));
+        }
+        UserEntity newUser = userEntityService.toUserEntity(user, Optional.<UserEntity>empty());
+
+        try {
+            newUser.setPasswordHash(userEntityService.generatePasswordHash(user.getPassword()));
+        } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+            LoggerFactory.getLogger(AdaptiveUserDao.class).warn("Error creating user password", e);
+            throw new ConflictException("Error creating user password");
+        }
+        newUser.getRoles().add("user");
+        userEntityService.save(newUser);
     }
 
     @Override
     public void update(User user) throws NotFoundException {
-        UserEntity userEntity = userEntityService.findByEmail(user.getEmail());
-        if(userEntity == null) {
+        Optional<UserEntity> userEntity = userEntityService.findByEmail(user.getEmail());
+        if (!userEntity.isPresent()) {
             throw new NotFoundException(String.format("User not found %s", user.getEmail()));
         }
-        CollectionUtils.addAll(userEntity.getAliases(),user.getAliases().iterator());
-        userEntity.setPasswordHash(user.getPassword());
-        userEntityService.save(userEntity);
+        userEntityService.toUserEntity(user, userEntity);
+        try {
+            if (user.getPassword() != null) {
+                userEntity.get().setPasswordHash(userEntityService.generatePasswordHash(user.getPassword()));
+            }
+        } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+            LoggerFactory.getLogger(AdaptiveUserDao.class).warn("Unable to generate user password", e);
+        }
+        userEntityService.save(userEntity.get());
     }
 
     @Override
     public void remove(String id) throws NotFoundException {
-        UserEntity userEntity = userEntityService.findByEmail(id);
-        if(userEntity == null) {
+        Optional<UserEntity> userEntity = userEntityService.findByEmail(id);
+        if (!userEntity.isPresent()) {
             throw new NotFoundException(String.format("User not found %s", id));
         }
         //TODO delete membership
         //TODO check workspaces, account, subscription, etc
-        userEntityService.delete(userEntity);
+        userEntityService.delete(userEntity.get());
     }
 
     @Override
     public User getByAlias(String alias) throws NotFoundException {
-        UserEntity userEntity = userEntityService.findByAliasesContains(alias);
-        if(userEntity == null){
+        Optional<UserEntity> userEntity = userEntityService.findByEmail(alias);
+        if (!userEntity.isPresent()) {
             throw new NotFoundException(String.format("User not found %s", alias));
         }
-        return userEntityService.toUser(userEntity);
+        return userEntityService.toUser(userEntity.get());
     }
 
     @Override
     public User getById(String id) throws NotFoundException {
-        UserEntity userEntity = userEntityService.findOne(Long.valueOf(id));
-        if(userEntity ==null){
+        Optional<UserEntity> userEntity = userEntityService.findByUserId(id);
+        if (!userEntity.isPresent()) {
             throw new NotFoundException(String.format("User not found %s", id));
         }
-        return userEntityService.toUser(userEntity);
+        return userEntityService.toUser(userEntity.get());
     }
 }

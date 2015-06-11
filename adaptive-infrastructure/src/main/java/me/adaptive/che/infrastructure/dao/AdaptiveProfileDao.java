@@ -18,6 +18,7 @@
 package me.adaptive.che.infrastructure.dao;
 
 import me.adaptive.core.data.api.ProfileEntityService;
+import me.adaptive.core.data.domain.ProfileEntity;
 import org.eclipse.che.api.core.NotFoundException;
 import org.eclipse.che.api.user.server.dao.Profile;
 import org.eclipse.che.api.user.server.dao.UserProfileDao;
@@ -25,6 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service("adaptiveProfileDao")
 public class AdaptiveProfileDao implements UserProfileDao {
@@ -35,31 +38,34 @@ public class AdaptiveProfileDao implements UserProfileDao {
 
     @Override
     public void create(Profile profile) {
-        profileEntityService.save(profileEntityService.toProfileEntity(profile));
+        profileEntityService.save(profileEntityService.toProfileEntity(profile, Optional.<ProfileEntity>empty()));
     }
 
     @Override
     public void update(Profile profile) throws NotFoundException {
-        if (!profileEntityService.exists(Long.valueOf(profile.getId()))) {
+        Optional<ProfileEntity> profileEntity = profileEntityService.findByProfileId(profile.getId());
+        if (!profileEntity.isPresent()) {
             throw new NotFoundException(String.format("Profile not found %s", profile.getId()));
         }
-        profileEntityService.save(profileEntityService.toProfileEntity(profile));
+        profileEntityService.save(profileEntityService.toProfileEntity(profile, profileEntity));
     }
 
     @Override
     public void remove(String id) throws NotFoundException {
-        if (!profileEntityService.exists(Long.valueOf(id))) {
+        Optional<ProfileEntity> profileEntity = profileEntityService.findByProfileId(id);
+        if (!profileEntity.isPresent()) {
             throw new NotFoundException(String.format("Profile not found %s", id));
 
         }
-        profileEntityService.delete(Long.valueOf(id));
+        profileEntityService.delete(profileEntity.get());
     }
 
     @Override
     public Profile getById(String id) throws NotFoundException {
-        if (!profileEntityService.exists(Long.valueOf(id))) {
+        Optional<ProfileEntity> profileEntity = profileEntityService.findByProfileId(id);
+        if (!profileEntity.isPresent()) {
             throw new NotFoundException(String.format("Profile not found %s", id));
         }
-        return profileEntityService.toProfile(profileEntityService.findOne(Long.valueOf(id)));
+        return profileEntityService.toProfile(profileEntity.get());
     }
 }

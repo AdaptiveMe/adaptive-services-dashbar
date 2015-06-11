@@ -31,7 +31,8 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service("adaptiveAuthenticationDao")
 public class AdaptiveAuthenticationDao implements AuthenticationDao {
@@ -45,27 +46,34 @@ public class AdaptiveAuthenticationDao implements AuthenticationDao {
     @Override
     public Response login(Credentials credentials, Cookie tokenAccessCookie, UriInfo uriInfo) throws AuthenticationException {
         String token;
-        if(credentials != null && credentials.getUsername() != null && credentials.getPassword() != null){
+        if (credentials != null && credentials.getUsername() != null && credentials.getPassword() != null) {
 
-            UserEntity user = userService.findByEmail(credentials.getUsername());
-            if(user == null){
-                throw new AuthenticationException(String.format("User %s not found",credentials.getUsername()));
+            Optional<UserEntity> user = userService.findByEmail(credentials.getUsername());
+            if (!user.isPresent()) {
+                throw new AuthenticationException(String.format("User %s not found", credentials.getUsername()));
             }
 
-            if(!userService.generatePasswordHash(credentials.getPassword()).equals(user.getPasswordHash())){
+            if (!userService.validatePassword(credentials.getPassword(), user.get().getPasswordHash())) {
                 throw new AuthenticationException("Invalid Credentials");
             }
 
-            List<UserTokenEntity> tokens = userTokenService.findByUser(user);
+            Set<UserTokenEntity> tokens = userTokenService.findByUser(user.get());
 
-            if(tokens.isEmpty()){
-                token = userTokenService.generateTokenForUser(user).getToken();
-            }else{
-                token = tokens.get(0).getToken();
+            if (tokens.isEmpty()) {
+                token = userTokenService.generateTokenForUser(user.get()).getToken();
+            } else {
+                token = tokens.stream().findAny().get().getToken();
             }
-        }else if(tokenAccessCookie!= null){
-            token = userTokenService.findByToken(tokenAccessCookie.getValue()).getToken();
-        }else{
+        } else if (tokenAccessCookie != null) {
+            Optional<UserTokenEntity> tokenEntity = userTokenService.findByToken(tokenAccessCookie.getValue());
+            if (!tokenEntity.isPresent()) {
+                throw new AuthenticationException("Cookie token invalid");
+            } else if (!tokenEntity.get().isActive()) {
+                throw new AuthenticationException("Cookie token inactive");
+            }else{
+                token = tokenEntity.get().getToken();
+            }
+        } else {
             throw new AuthenticationException("No credentials provided");
         }
 

@@ -25,6 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.Optional;
+
 /**
  * Created by panthro on 05/06/15.
  */
@@ -43,15 +45,15 @@ public class AdaptiveTokenValidator implements TokenValidator {
         if(StringUtils.isEmpty(token)){
             throw  new ConflictException("Token param is null or empty");
         }
-        UserTokenEntity userToken = userTokenService.findByToken(token);
-        if(userToken == null){
+        Optional<UserTokenEntity> userToken = userTokenService.findByToken(token);
+        if (!userToken.isPresent()) {
             throw new ConflictException("User Token not found");
         }
 
-        if(!userToken.isActive()){
+        if (!userToken.get().isActive()) {
             throw new ConflictException("User Token is not active");
         }
-        return userToken.getUser().getEmail();
+        return userToken.get().getUser().getAliases().stream().findFirst().get();
     }
 
 }

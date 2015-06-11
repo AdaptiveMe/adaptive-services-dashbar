@@ -19,7 +19,6 @@ package me.adaptive.che.infrastructure.dao;
 import me.adaptive.core.data.api.WorkspaceEntityService;
 import me.adaptive.core.data.api.WorkspaceMemberService;
 import me.adaptive.core.data.domain.WorkspaceMemberEntity;
-import org.apache.commons.collections.CollectionUtils;
 import org.eclipse.che.api.core.ConflictException;
 import org.eclipse.che.api.core.NotFoundException;
 import org.eclipse.che.api.core.ServerException;
@@ -31,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service("workspaceMemberDao")
 public class WorkspaceMemberDao implements MemberDao {
@@ -51,13 +51,13 @@ public class WorkspaceMemberDao implements MemberDao {
         workspaceDao.getById(member.getWorkspaceId());
         // Check user existence
         userDao.getById(member.getUserId());
-        if(workspaceMemberService.findByUserIdAndWorkspaceId(Long.valueOf(member.getUserId()),Long.valueOf(member.getWorkspaceId())) != null){
+        if (!workspaceMemberService.findByUserIdAndWorkspaceId(member.getUserId(), member.getWorkspaceId()).isPresent()) {
             throw new ConflictException(
                     String.format("Membership of user %s in workspace %s already exists. Use update method instead.",
                             member.getUserId(), member.getWorkspaceId()));
         }
 
-        workspaceMemberService.save(workspaceMemberService.toWorkspaceMemberEntity(member));
+        workspaceMemberService.save(workspaceMemberService.toWorkspaceMemberEntity(member, Optional.<WorkspaceMemberEntity>empty()));
 
     }
 
@@ -69,47 +69,46 @@ public class WorkspaceMemberDao implements MemberDao {
         workspaceDao.getById(member.getWorkspaceId());
         // Check user existence
         userDao.getById(member.getUserId());
-        WorkspaceMemberEntity workspaceMemberEntity = workspaceMemberService.findByUserIdAndWorkspaceId(Long.valueOf(member.getUserId()),Long.valueOf(member.getWorkspaceId()));
-        if(workspaceMemberEntity == null){
+        Optional<WorkspaceMemberEntity> workspaceMemberEntity = workspaceMemberService.findByUserIdAndWorkspaceId(member.getUserId(), member.getWorkspaceId());
+        if (!workspaceMemberEntity.isPresent()) {
             throw new NotFoundException(String.format("Unable to update membership: user %s has no memberships in workspace %s.",
                     member.getUserId(), member.getWorkspaceId()));
         }
-        CollectionUtils.addAll(workspaceMemberEntity.getRoles(),member.getRoles().iterator());
-        workspaceMemberService.save(workspaceMemberEntity);
+        workspaceMemberService.save(workspaceMemberService.toWorkspaceMemberEntity(member, workspaceMemberEntity));
     }
 
     @Override
     public List<Member> getWorkspaceMembers(String wsId) {
 
-        return workspaceMemberService.toMemberList(workspaceMemberService.findByWorkspace(workspaceEntityService.findOne(Long.valueOf(wsId))));
+        return workspaceMemberService.toMemberList(workspaceMemberService.findByWorkspaceId(wsId));
 
     }
 
     @Override
     public List<Member> getUserRelationships(String userId) {
-        return workspaceMemberService.toMemberList(workspaceMemberService.findByUserId(Long.valueOf(userId)));
+        return workspaceMemberService.toMemberList(workspaceMemberService.findByUserId(userId));
     }
 
     @Override
     public Member getWorkspaceMember(String wsId, String userId) throws NotFoundException, ServerException {
-        WorkspaceMemberEntity workspaceMemberEntity = workspaceMemberService.findByUserIdAndWorkspaceId(Long.valueOf(userId),Long.valueOf(wsId));
+        Optional<WorkspaceMemberEntity> workspaceMemberEntity = workspaceMemberService.findByUserIdAndWorkspaceId(userId, wsId);
 
-        if(workspaceMemberEntity == null){
+        if (!workspaceMemberEntity.isPresent()) {
             throw new NotFoundException(String.format("User with id %s has no membership in workspace %s", userId, wsId));
         }
 
-        return workspaceMemberService.toMember(workspaceMemberEntity);
+        return workspaceMemberService.toMember(workspaceMemberEntity.get());
 
 
     }
 
     @Override
     public void remove(Member member) throws NotFoundException {
-       WorkspaceMemberEntity workspaceMemberEntity=  workspaceMemberService.findByUserIdAndWorkspaceId(Long.valueOf(member.getUserId()), Long.valueOf(member.getWorkspaceId()));
-        if(workspaceMemberEntity == null){
+        Optional<WorkspaceMemberEntity> workspaceMemberEntity = workspaceMemberService.findByUserIdAndWorkspaceId(member.getUserId(), member.getWorkspaceId());
+        if (!workspaceMemberEntity.isPresent()) {
             throw new NotFoundException(String.format("Unable to update membership: user %s has no memberships in workspace %s.",
                     member.getUserId(), member.getWorkspaceId()));
         }
-        workspaceMemberService.delete(workspaceMemberEntity);
+        workspaceMemberService.delete(workspaceMemberEntity.get());
     }
 }

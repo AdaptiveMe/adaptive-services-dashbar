@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Service("adaptiveWorkspaceDao")
@@ -38,56 +39,58 @@ public class AdaptiveWorkspaceDao implements WorkspaceDao {
     @Override
     public void create(Workspace workspace) throws ConflictException {
         validateWorkspaceName(workspace.getName());
-        if(workspaceEntityService.exists(Long.valueOf(workspace.getId()))){
+        if (workspace.getId() != null && workspaceEntityService.findByWorkspaceId(workspace.getId()).isPresent()) {
             throw new ConflictException(String.format("Workspace with id %s already exists.", workspace.getId()));
         }
 
-        if (workspaceEntityService.findByName(workspace.getName()) != null) {
+        if (workspace.getName() != null && workspaceEntityService.findByName(workspace.getName()).isPresent()) {
             throw new ConflictException(String.format("Workspace with name %s already exists.", workspace.getName()));
         }
-        workspaceEntityService.create(workspaceEntityService.toWorkspaceEntity(workspace));
+        workspaceEntityService.create(workspaceEntityService.toWorkspaceEntity(workspace, Optional.<WorkspaceEntity>empty()));
     }
 
     @Override
     public void update(Workspace workspace) throws NotFoundException, ConflictException {
+        Optional<WorkspaceEntity> workspaceEntity = workspaceEntityService.findByWorkspaceId(workspace.getId());
 
-        if(!workspaceEntityService.exists(Long.valueOf(workspace.getId()))){
+        if (!workspaceEntity.isPresent()) {
             throw new NotFoundException(String.format("Workspace not found %s", workspace.getId()));
 
         }
-        workspaceEntityService.upate(workspaceEntityService.toWorkspaceEntity(workspace));
+        workspaceEntityService.update(workspaceEntityService.toWorkspaceEntity(workspace, workspaceEntity));
     }
 
     @Override
     public void remove(String id) throws NotFoundException {
-        if(!workspaceEntityService.exists(Long.valueOf(id))){
+        Optional<WorkspaceEntity> workspaceEntity = workspaceEntityService.findByWorkspaceId(id);
+        if (!workspaceEntity.isPresent()) {
             throw new NotFoundException(String.format("Workspace not found %s", id));
 
         }
-        workspaceEntityService.delete(Long.valueOf(id));
+        workspaceEntityService.delete(workspaceEntity.get());
     }
 
     @Override
     public Workspace getById(String id) throws NotFoundException {
-        WorkspaceEntity entity = workspaceEntityService.findOne(Long.valueOf(id));
-        if(entity == null) {
+        Optional<WorkspaceEntity> entity = workspaceEntityService.findByWorkspaceId(id);
+        if (!entity.isPresent()) {
             throw new NotFoundException(String.format("Workspace not found %s", id));
         }
-        return workspaceEntityService.toWorkspace(entity);
+        return workspaceEntityService.toWorkspace(entity.get());
     }
 
     @Override
     public Workspace getByName(String name) throws NotFoundException {
-        WorkspaceEntity entity = workspaceEntityService.findByName(name);
-        if(entity == null) {
+        Optional<WorkspaceEntity> entity = workspaceEntityService.findByName(name);
+        if (!entity.isPresent()) {
             throw new NotFoundException(String.format("Workspace not found %s", name));
         }
-        return workspaceEntityService.toWorkspace(entity);
+        return workspaceEntityService.toWorkspace(entity.get());
     }
 
     @Override
     public List<Workspace> getByAccount(String accountId) {
-        return workspaceEntityService.toWorkspaceList(workspaceEntityService.findByAccountId(Long.valueOf(accountId)));
+        return workspaceEntityService.toWorkspaceList(workspaceEntityService.findByAccountId(accountId));
     }
 
     private void validateWorkspaceName(String workspaceName) throws ConflictException {

@@ -33,9 +33,10 @@ import org.eclipse.che.api.workspace.server.dao.WorkspaceDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author Eugene Voevodin
@@ -67,34 +68,31 @@ public class AdaptiveAccountDao implements AccountDao {
 
     @Override
     public Account getById(String id) throws NotFoundException {
-        AccountEntity accountEntity = accountEntityService.findOne(Long.valueOf(id));
-        if(accountEntity == null) {
+        Optional<AccountEntity> accountEntity = accountEntityService.findByAccountId(id);
+        if (!accountEntity.isPresent()) {
             throw new NotFoundException(String.format("Not found account %s", id));
         }else {
-            return accountEntityService.toAccount(accountEntity);
+            return accountEntityService.toAccount(accountEntity.get());
         }
     }
 
     @Override
     public Account getByName(String name) throws NotFoundException {
-       AccountEntity accountEntity = accountEntityService.findByName(name);
-        if(accountEntity == null) {
+        Optional<AccountEntity> accountEntity = accountEntityService.findByName(name);
+        if (!accountEntity.isPresent()) {
             throw new NotFoundException(String.format("Not found account %s", name));
         }else{
-            return accountEntityService.toAccount(accountEntity);
+            return accountEntityService.toAccount(accountEntity.get());
         }
     }
 
     @Override
     public List<Account> getByOwner(String ownerEmail) {
-        UserEntity userEntity = userEntityService.findByEmail(ownerEmail);
-        if(userEntity == null){
+        Optional<UserEntity> userEntity = userEntityService.findByEmail(ownerEmail);
+        if (!userEntity.isPresent()) {
             return Collections.EMPTY_LIST;
         }
-        final List<Account> accounts = new ArrayList<>();
-        for(AccountMemberEntity adaptiveMember : accountMemberEntityService.findByUserEmailAndRolesContains(ownerEmail,"account/owner")){
-            accounts.add(accountEntityService.toAccount(adaptiveMember.getAccount()));
-        }
+        final List<Account> accounts = accountMemberEntityService.findByUserEmailAndRolesContains(ownerEmail, "account/owner").stream().map(adaptiveMember -> accountEntityService.toAccount(adaptiveMember.getAccount())).collect(Collectors.toList());
         return accounts;
     }
 
@@ -105,18 +103,22 @@ public class AdaptiveAccountDao implements AccountDao {
 
     @Override
     public void update(Account account) throws NotFoundException {
-        if(!accountEntityService.exists(account)) {
+        Optional<AccountEntity> accountEntity = account.getId() != null ? accountEntityService.findByAccountId(account.getId()) : Optional.<AccountEntity>empty();
+        if (!accountEntity.isPresent() && account.getName() != null) {
+            accountEntity = accountEntityService.findByName(account.getName());
+        }
+        if (!accountEntity.isPresent()) {
             throw new NotFoundException(String.format("Not found account %s", account.getId()));
         }
-        accountEntityService.save(accountEntityService.toAccountEntity(account));
+        accountEntityService.save(accountEntityService.toAccountEntity(account, accountEntity));
     }
 
     @Override
     public void remove(String id) throws NotFoundException, ServerException, ConflictException {
 
-        AccountEntity accountEntity = accountEntityService.findOne(Long.valueOf(id));
+        Optional<AccountEntity> accountEntity = accountEntityService.findByAccountId(id);
 
-        if (accountEntity == null) {
+        if (!accountEntity.isPresent()) {
             throw new NotFoundException(String.format("Not found account %s", id));
         }
 
@@ -124,8 +126,8 @@ public class AdaptiveAccountDao implements AccountDao {
         if (!workspaceDao.getByAccount(id).isEmpty()) {
             throw new ConflictException("It is not possible to remove account that has associated workspaces");
         }
-        accountMemberEntityService.delete(accountMemberEntityService.findByAccount(accountEntity));
-        accountEntityService.delete(accountEntity);
+        accountMemberEntityService.delete(accountMemberEntityService.findByAccount(accountEntity.get()));
+        accountEntityService.delete(accountEntity.get());
     }
 
     @Override
@@ -136,7 +138,7 @@ public class AdaptiveAccountDao implements AccountDao {
             throw new NotFoundException(String.format("Not found account %s", member.getAccountId()));
         }
 
-        if (!accountMemberEntityService.findByUserEmailAndAccountId(member.getUserId(),Long.valueOf(member.getAccountId())).isEmpty()) {
+        if (accountMemberEntityService.findByUserIdAndAccountId(member.getUserId(), member.getAccountId()).isPresent()) {
             throw new ConflictException(String.format("Membership of user %s in account %s already exists.",
                     member.getUserId(), member.getAccountId())
             );
@@ -146,16 +148,16 @@ public class AdaptiveAccountDao implements AccountDao {
 
     @Override
     public List<Member> getMembers(String accountId) {
-        return accountMemberEntityService.toMemberList(accountMemberEntityService.findByAccount(accountEntityService.findOne(Long.valueOf(accountId))));
+        return accountMemberEntityService.toMemberList(accountMemberEntityService.findByAccountId(accountId));
     }
 
     @Override
     public void removeMember(Member member) throws NotFoundException {
-        List<AccountMemberEntity> adaptiveMembers = accountMemberEntityService.findByUserEmailAndAccountId(member.getUserId(), Long.valueOf(member.getAccountId()));
-        if(adaptiveMembers.isEmpty()){
+        Optional<AccountMemberEntity> adaptiveMembers = accountMemberEntityService.findByUserIdAndAccountId(member.getUserId(), member.getAccountId());
+        if (!adaptiveMembers.isPresent()) {
             throw new NotFoundException(String.format("User with id %s hasn't any account membership", member.getUserId()));
         }
-        accountMemberEntityService.delete(adaptiveMembers);
+        accountMemberEntityService.delete(adaptiveMembers.get());
     }
 
     @Override
