@@ -33,11 +33,13 @@ public interface WorkspaceMemberRepository extends JpaRepository<WorkspaceMember
 
     Set<WorkspaceMemberEntity> findByWorkspace(WorkspaceEntity workspaceEntity);
 
-    Optional<WorkspaceMemberEntity> findByUserUserIdAndWorkspaceWorkspaceId(String userId, Long workspaceId);
+    Optional<WorkspaceMemberEntity> findByUserUserIdAndWorkspaceWorkspaceId(String userId, String workspaceId);
 
     Set<WorkspaceMemberEntity> findByUserUserId(String id);
 
     Set<WorkspaceMemberEntity> findByUserAliasesContainsAndRoleContains(String email, String role);
 
     Set<WorkspaceMemberEntity> findByUserAliasesContains(String userEmail);
+
+    Set<WorkspaceMemberEntity> findByWorkspaceWorkspaceId(String workspaceId);
 }
