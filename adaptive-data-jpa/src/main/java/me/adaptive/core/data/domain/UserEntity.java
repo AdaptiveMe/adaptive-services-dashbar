@@ -21,6 +21,7 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -48,6 +49,12 @@ public class UserEntity extends BaseEntity {
     @CollectionTable(name = "user_aliases", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"))
     @Column(name = "alias")
     private Set<String> aliases = new HashSet<>();
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @MapKeyColumn(name = "name")
+    @Column(name = "value")
+    @CollectionTable(name = "user_preferences", joinColumns = @JoinColumn(name = "user_id"))
+    private Map<String, String> preferences;
 
     public String getUserId() {
         return userId;
@@ -80,6 +87,14 @@ public class UserEntity extends BaseEntity {
 
     public void setAliases(Set<String> aliases) {
         this.aliases = aliases;
+    }
+
+    public Map<String, String> getPreferences() {
+        return preferences;
+    }
+
+    public void setPreferences(Map<String, String> preferences) {
+        this.preferences = preferences;
     }
 
     @Override

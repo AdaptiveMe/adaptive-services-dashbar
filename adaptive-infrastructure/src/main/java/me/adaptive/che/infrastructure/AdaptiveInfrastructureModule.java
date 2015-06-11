@@ -40,7 +40,7 @@ public class AdaptiveInfrastructureModule extends AbstractModule {
         bind(UserDao.class).toProvider(SpringIntegration.fromSpring(UserDao.class, "UserDao"));
         bind(WorkspaceDao.class).toProvider(SpringIntegration.fromSpring(AdaptiveWorkspaceDao.class,"adaptiveWorkspaceDao"));
         bind(UserProfileDao.class).toProvider(SpringIntegration.fromSpring(AdaptiveProfileDao.class,"adaptiveProfileDao"));
-        bind(PreferenceDao.class).to(LocalPreferenceDaoImpl.class);
+        bind(PreferenceDao.class).toProvider(SpringIntegration.fromSpring(AdaptivePreferenceDao.class, "adaptivePreferenceDao"));
         bind(MemberDao.class).toProvider(SpringIntegration.fromSpring(WorkspaceMemberDao.class,"workspaceMemberDao"));
         bind(AccountDao.class).toProvider(SpringIntegration.fromSpring(AccountDao.class, "AccountDao"));
         bind(AuthenticationDao.class).toProvider(SpringIntegration.fromSpring(AdaptiveAuthenticationDao.class,"adaptiveAuthenticationDao"));
