@@ -30,6 +30,7 @@ import org.eclipse.che.api.core.rest.ApiInfoService;
 import org.eclipse.che.api.core.rest.CoreRestModule;
 import org.eclipse.che.api.factory.FactoryModule;
 import org.eclipse.che.api.project.server.BaseProjectModule;
+import org.eclipse.che.api.project.server.ProjectService;
 import org.eclipse.che.api.runner.LastInUseRunnerSelectionStrategy;
 import org.eclipse.che.api.runner.RunnerAdminService;
 import org.eclipse.che.api.runner.RunnerSelectionStrategy;
@@ -70,7 +71,8 @@ public class ApiModule extends AbstractModule {
 
         bind(AuthenticationService.class);
         bind(WorkspaceService.class);
-        //bind(AccountService.class);
+        bind(ProjectService.class);
+        //bind(AccountService.class); //TODO Implement Account/Subscription/Plan
         bind(ETagResponseFilter.class);
 
         bind(UserService.class);
