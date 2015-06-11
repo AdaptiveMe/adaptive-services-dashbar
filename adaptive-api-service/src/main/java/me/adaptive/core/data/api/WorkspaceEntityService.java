@@ -46,10 +46,6 @@ public class WorkspaceEntityService {
         return workspaceEntityRepository.findByAccountAccountId(accountId);
     }
 
-    public boolean exists(Long aLong) {
-        return workspaceEntityRepository.exists(aLong);
-    }
-
     public WorkspaceEntity toWorkspaceEntity(Workspace workspace, Optional<WorkspaceEntity> workspaceEntity) {
         WorkspaceEntity entity = workspaceEntity.isPresent() ? workspaceEntity.get() : new WorkspaceEntity();
         entity.setName(workspace.getName());

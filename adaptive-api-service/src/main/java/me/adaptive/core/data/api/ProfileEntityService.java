@@ -42,10 +42,6 @@ public class ProfileEntityService {
         profileEntityRepository.delete(aLong);
     }
 
-    public boolean exists(Long aLong) {
-        return profileEntityRepository.exists(aLong);
-    }
-
     public ProfileEntity toProfileEntity(Profile profile, Optional<ProfileEntity> profileEntity) {
         ProfileEntity entity = profileEntity.isPresent() ? profileEntity.get() : new ProfileEntity();
         entity.setAttributes(profile.getAttributes());
