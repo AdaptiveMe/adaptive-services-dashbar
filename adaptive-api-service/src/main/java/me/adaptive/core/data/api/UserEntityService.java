@@ -82,7 +82,12 @@ public class UserEntityService {
     }
 
     public static void main(String[] args) throws InvalidKeySpecException, NoSuchAlgorithmException {
-        System.out.println(new UserEntityService().generatePasswordHash("123456"));
+        String password = "rafael";
+        System.out.println("password = " + password);
+        String passwordHash = new UserEntityService().generatePasswordHash(password);
+        System.out.println("passwordHash = " + passwordHash);
+        boolean validationSuccess = new UserEntityService().validatePassword(password, passwordHash);
+        System.out.println("validationSuccess = " + validationSuccess);
     }
 
     public Optional<UserEntity> findByUserId(String userId) {
