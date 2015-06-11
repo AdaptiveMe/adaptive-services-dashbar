@@ -45,23 +45,23 @@ public class AccountEntityService {
 
         Optional<AccountEntity> optional = accountRepository.findByAccountId(account.getId());
         if (!optional.isPresent()) {
-            return accountRepository.save(toAccountEntity(account));
+            return accountRepository.save(toAccountEntity(account, Optional.<AccountEntity>empty()));
         }
         return optional.get();
     }
 
     public boolean exists(Account account) {
-        return (StringUtils.hasText(account.getId()) && accountRepository.findOne(Long.valueOf(account.getId())) != null)
+        return (StringUtils.hasText(account.getId()) && accountRepository.findByAccountId(account.getId()).isPresent())
                 ||
-                (StringUtils.hasText(account.getName()) && accountRepository.findByName(account.getName()) != null);
+                (StringUtils.hasText(account.getName()) && accountRepository.findByName(account.getName()).isPresent());
     }
 
-    public AccountEntity toAccountEntity(Account account) {
-        AccountEntity accountEntity = new AccountEntity();
-        accountEntity.setAttributes(account.getAttributes());
-        accountEntity.setAccountId(account.getId());
-        accountEntity.setName(account.getName());
-        return accountEntity;
+    public AccountEntity toAccountEntity(Account account, Optional<AccountEntity> accountEntity) {
+        AccountEntity entity = accountEntity.isPresent() ? accountEntity.get() : new AccountEntity();
+        entity.setAttributes(account.getAttributes());
+        entity.setAccountId(account.getId());
+        entity.setName(account.getName());
+        return entity;
     }
 
     public Account toAccount(AccountEntity accountEntity) {

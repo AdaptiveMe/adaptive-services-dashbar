@@ -63,12 +63,13 @@ public class UserEntityService {
         CollectionUtils.addAll(user.getAliases(), userEntity.getAliases().iterator());
         return user;
     }
-    public UserEntity toUserEntity(User user){
-        UserEntity userEntity = new UserEntity();
-        userEntity.getAliases().add(user.getEmail());
-        userEntity.setUserId(user.getId());
-        CollectionUtils.addAll(userEntity.getAliases(), user.getAliases().iterator());
-        return userEntity;
+
+    public UserEntity toUserEntity(User user, Optional<UserEntity> userEntity) {
+        UserEntity entity = userEntity.isPresent() ? userEntity.get() : new UserEntity();
+        entity.getAliases().add(user.getEmail());
+        entity.setUserId(user.getId());
+        CollectionUtils.addAll(entity.getAliases(), user.getAliases().iterator());
+        return entity;
     }
 
     public String generatePasswordHash(String password) throws InvalidKeySpecException, NoSuchAlgorithmException {

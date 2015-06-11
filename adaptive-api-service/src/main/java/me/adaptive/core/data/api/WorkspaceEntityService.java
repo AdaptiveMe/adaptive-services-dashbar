@@ -50,8 +50,8 @@ public class WorkspaceEntityService {
         return workspaceEntityRepository.exists(aLong);
     }
 
-    public WorkspaceEntity toWorkspaceEntity(Workspace workspace){
-        WorkspaceEntity entity = new WorkspaceEntity();
+    public WorkspaceEntity toWorkspaceEntity(Workspace workspace, Optional<WorkspaceEntity> workspaceEntity) {
+        WorkspaceEntity entity = workspaceEntity.isPresent() ? workspaceEntity.get() : new WorkspaceEntity();
         entity.setName(workspace.getName());
         entity.setWorkspaceId(workspace.getId());
         entity.setTemporary(workspace.isTemporary());

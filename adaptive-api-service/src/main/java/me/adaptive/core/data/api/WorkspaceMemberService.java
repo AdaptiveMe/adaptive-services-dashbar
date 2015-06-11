@@ -88,11 +88,11 @@ public class WorkspaceMemberService {
         return workspaceMemberRepository.save(workspaceMemberEntity);
     }
 
-    public WorkspaceMemberEntity toWorkspaceMemberEntity(Member member){
-        WorkspaceMemberEntity workspaceMemberEntity = new WorkspaceMemberEntity();
-        CollectionUtils.addAll(workspaceMemberEntity.getRoles(),member.getRoles().iterator());
-        workspaceMemberEntity.setUser(member.getUserId() == null ? null : userService.findByUserId(member.getUserId()).get());
-        workspaceMemberEntity.setWorkspace(member.getWorkspaceId() == null ? null : workspaceEntityService.findByWorkspaceId(member.getWorkspaceId()).get());
-        return workspaceMemberEntity;
+    public WorkspaceMemberEntity toWorkspaceMemberEntity(Member member, Optional<WorkspaceMemberEntity> workspaceMemberEntity) {
+        WorkspaceMemberEntity entity = workspaceMemberEntity.isPresent() ? workspaceMemberEntity.get() : new WorkspaceMemberEntity();
+        CollectionUtils.addAll(entity.getRoles(), member.getRoles().iterator());
+        entity.setUser(member.getUserId() == null ? null : userService.findByUserId(member.getUserId()).get());
+        entity.setWorkspace(member.getWorkspaceId() == null ? null : workspaceEntityService.findByWorkspaceId(member.getWorkspaceId()).get());
+        return entity;
     }
 }

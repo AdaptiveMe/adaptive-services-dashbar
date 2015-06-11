@@ -46,8 +46,8 @@ public class ProfileEntityService {
         return profileEntityRepository.exists(aLong);
     }
 
-    public ProfileEntity toProfileEntity(Profile profile){
-        ProfileEntity entity = new ProfileEntity();
+    public ProfileEntity toProfileEntity(Profile profile, Optional<ProfileEntity> profileEntity) {
+        ProfileEntity entity = profileEntity.isPresent() ? profileEntity.get() : new ProfileEntity();
         entity.setAttributes(profile.getAttributes());
         entity.setProfileId(profile.getId());
         entity.setUser(profile.getUserId() == null ? null : userService.findByUserId(profile.getUserId()).get());

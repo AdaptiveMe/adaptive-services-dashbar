@@ -67,7 +67,7 @@ public class AccountMemberEntityService {
     }
 
 
-    public List<Member> toMemberList(List<AccountMemberEntity> accountMemberEntityList){
+    public List<Member> toMemberList(Set<AccountMemberEntity> accountMemberEntityList) {
         List<Member> members = new ArrayList<>(accountMemberEntityList.size());
         members.addAll(accountMemberEntityList.stream().map(this::toMember).collect(Collectors.toList()));
         return members;
@@ -81,7 +81,7 @@ public class AccountMemberEntityService {
         return accountMemberRepository.findByAccountAccountId(accountId);
     }
 
-    public Set<AccountMemberEntity> findByUserIdAndAccountId(String userEmail, String accountId) {
+    public Optional<AccountMemberEntity> findByUserIdAndAccountId(String userEmail, String accountId) {
         return accountMemberRepository.findByUserUserIdAndAccountAccountId(userEmail, accountId);
     }
 
