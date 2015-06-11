@@ -31,13 +31,13 @@ import java.util.Set;
 @Repository
 public interface WorkspaceMemberRepository extends JpaRepository<WorkspaceMemberEntity, Long>, JpaSpecificationExecutor<WorkspaceMemberEntity> {
 
-    Set<WorkspaceMemberEntity> findByUserEmailAndRolesContains(String email, String role);
-
-    Set<WorkspaceMemberEntity> findByUserEmail(String userEmail);
-
     Set<WorkspaceMemberEntity> findByWorkspace(WorkspaceEntity workspaceEntity);
 
-    Optional<WorkspaceMemberEntity> findByUserIdAndWorkspaceId(Long userId, Long workspaceId);
+    Optional<WorkspaceMemberEntity> findByUserUserIdAndWorkspaceWorkspaceId(String userId, Long workspaceId);
 
-    Set<WorkspaceMemberEntity> findByUserId(Long id);
+    Set<WorkspaceMemberEntity> findByUserUserId(String id);
+
+    Set<WorkspaceMemberEntity> findByUserAliasesContainsAndRoleContains(String email, String role);
+
+    Set<WorkspaceMemberEntity> findByUserAliasesContains(String userEmail);
 }

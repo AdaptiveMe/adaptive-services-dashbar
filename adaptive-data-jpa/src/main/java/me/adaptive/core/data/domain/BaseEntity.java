@@ -68,11 +68,13 @@ public abstract class BaseEntity {
         this.createdAt = createdAt;
     }
 
-    public Long getId() {
+    @SuppressWarnings("unused")
+    private Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    @SuppressWarnings("unused")
+    private void setId(Long id) {
         this.id = id;
     }
 

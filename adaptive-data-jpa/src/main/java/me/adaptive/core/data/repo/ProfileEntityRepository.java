@@ -16,7 +16,6 @@
 package me.adaptive.core.data.repo;
 
 import me.adaptive.core.data.domain.ProfileEntity;
-import me.adaptive.core.data.domain.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
@@ -28,8 +27,6 @@ import java.util.Optional;
  */
 @Repository
 public interface ProfileEntityRepository extends JpaRepository<ProfileEntity, Long>, JpaSpecificationExecutor<ProfileEntity> {
-
-    Optional<ProfileEntity> findByUser(UserEntity user);
 
     Optional<ProfileEntity> findByProfileId(String id);
 }

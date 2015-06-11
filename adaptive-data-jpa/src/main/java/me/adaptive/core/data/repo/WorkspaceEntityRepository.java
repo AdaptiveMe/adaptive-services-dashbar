@@ -35,5 +35,4 @@ public interface WorkspaceEntityRepository extends JpaRepository<WorkspaceEntity
     Set<WorkspaceEntity> findByAccountAccountId(Long accountId);
 
     Optional<WorkspaceEntity> findByWorkspaceId(String workspaceId);
-
 }

@@ -30,15 +30,13 @@ import java.util.Set;
 @Repository
 public interface AccountMemberRepository extends JpaRepository<AccountMemberEntity, Long>, JpaSpecificationExecutor<AccountMemberEntity> {
 
-    Set<AccountMemberEntity> findByUserEmailAndRolesContains(String email, String role);
-
-    Set<AccountMemberEntity> findByUserEmail(String userEmail);
-
     Set<AccountMemberEntity> findByAccount(AccountEntity accountEntity);
-
-    Set<AccountMemberEntity> findByUserId(Long id);
 
     Set<AccountMemberEntity> findByUserUserIdAndAccountAccountId(String userEmail, String accountId);
 
-    Set<AccountMemberEntity> findByAccountAccounId(String accountId);
+    Set<AccountMemberEntity> findByAccountAccountId(String accountId);
+
+    Set<AccountMemberEntity> findByUserAliasesContainsAndRolesContains(String email, String role);
+
+    Set<AccountMemberEntity> findByUserAliasesContains(String userEmail);
 }

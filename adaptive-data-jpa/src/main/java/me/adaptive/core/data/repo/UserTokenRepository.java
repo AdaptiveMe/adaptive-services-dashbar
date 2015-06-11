@@ -23,6 +23,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Created by panthro on 04/06/15.
@@ -32,5 +33,5 @@ public interface UserTokenRepository extends JpaRepository<UserTokenEntity, Long
 
     Optional<UserTokenEntity> findByToken(String token);
 
-    Optional<UserTokenEntity> findByUserAndActiveTrue(UserEntity user);
+    Set<UserTokenEntity> findByUserAndActiveTrue(UserEntity user);
 }
