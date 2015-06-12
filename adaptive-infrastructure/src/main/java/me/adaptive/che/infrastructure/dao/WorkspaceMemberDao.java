@@ -51,7 +51,7 @@ public class WorkspaceMemberDao implements MemberDao {
         workspaceDao.getById(member.getWorkspaceId());
         // Check user existence
         userDao.getById(member.getUserId());
-        if (!workspaceMemberService.findByUserIdAndWorkspaceId(member.getUserId(), member.getWorkspaceId()).isPresent()) {
+        if (workspaceMemberService.findByUserIdAndWorkspaceId(member.getUserId(), member.getWorkspaceId()).isPresent()) {
             throw new ConflictException(
                     String.format("Membership of user %s in workspace %s already exists. Use update method instead.",
                             member.getUserId(), member.getWorkspaceId()));
