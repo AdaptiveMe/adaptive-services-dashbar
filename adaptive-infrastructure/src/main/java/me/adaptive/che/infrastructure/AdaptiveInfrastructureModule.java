@@ -17,10 +17,14 @@
 package me.adaptive.che.infrastructure;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.multibindings.Multibinder;
 import com.google.inject.spring.SpringIntegration;
 import me.adaptive.che.infrastructure.dao.*;
 import me.adaptive.core.data.SpringContextHolder;
+import org.eclipse.che.api.account.server.ResourcesManager;
+import org.eclipse.che.api.account.server.SubscriptionService;
 import org.eclipse.che.api.account.server.dao.AccountDao;
+import org.eclipse.che.api.account.server.dao.PlanDao;
 import org.eclipse.che.api.auth.AuthenticationDao;
 import org.eclipse.che.api.factory.FactoryStore;
 import org.eclipse.che.api.user.server.TokenValidator;
@@ -32,6 +36,8 @@ import org.eclipse.che.api.workspace.server.dao.WorkspaceDao;
 import org.eclipse.che.inject.DynaModule;
 import org.springframework.beans.factory.BeanFactory;
 
+import java.util.Map;
+
 @DynaModule
 public class AdaptiveInfrastructureModule extends AbstractModule {
     @Override
@@ -41,7 +47,16 @@ public class AdaptiveInfrastructureModule extends AbstractModule {
         bind(WorkspaceDao.class).toProvider(SpringIntegration.fromSpring(AdaptiveWorkspaceDao.class,"adaptiveWorkspaceDao"));
         bind(UserProfileDao.class).toProvider(SpringIntegration.fromSpring(AdaptiveProfileDao.class,"adaptiveProfileDao"));
         bind(PreferenceDao.class).toProvider(SpringIntegration.fromSpring(AdaptivePreferenceDao.class, "adaptivePreferenceDao"));
-        bind(MemberDao.class).toProvider(SpringIntegration.fromSpring(WorkspaceMemberDao.class,"workspaceMemberDao"));
+
+        //TODO find a batter way
+        Multibinder<SubscriptionService> multiBinder = Multibinder.newSetBinder(binder(), SubscriptionService.class);
+        Map<String, SubscriptionService> services = SpringContextHolder.getApplicationContext().getBeansOfType(SubscriptionService.class);
+        services.entrySet().forEach(entry -> multiBinder.addBinding().toInstance(entry.getValue()));
+
+
+        bind(MemberDao.class).toProvider(SpringIntegration.fromSpring(WorkspaceMemberDao.class, "workspaceMemberDao"));
+        bind(ResourcesManager.class).toProvider(SpringIntegration.fromSpring(AdaptiveResourcesManager.class, "adaptiveResourcesManager"));
+        bind(PlanDao.class).toProvider(SpringIntegration.fromSpring(AdaptivePlanDao.class, "adaptivePlanDao"));
         bind(AccountDao.class).toProvider(SpringIntegration.fromSpring(AccountDao.class, "AccountDao"));
         bind(AuthenticationDao.class).toProvider(SpringIntegration.fromSpring(AdaptiveAuthenticationDao.class,"adaptiveAuthenticationDao"));
         bind(FactoryStore.class).to(InMemoryFactoryStore.class);
