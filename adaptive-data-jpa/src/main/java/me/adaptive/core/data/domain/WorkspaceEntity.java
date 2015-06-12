@@ -17,10 +17,9 @@
 package me.adaptive.core.data.domain;
 
 import javax.persistence.*;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,8 +33,7 @@ public class WorkspaceEntity extends BaseEntity {
     private boolean temporary;
 
     @NotNull
-    @Max(value = 100, message = "Workspace id can't have more than 100 characters")
-    @Min(value = 3, message = "Workspace id need to be have at least 3 characters")
+    @Size(min = 3, max = 100, message = "Workspace id can't have more than 100 characters and less than 3")
     @Column(name = "workspace_id", unique = true)
     private String workspaceId;
 

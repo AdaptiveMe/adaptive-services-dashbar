@@ -17,9 +17,8 @@
 package me.adaptive.core.data.domain;
 
 import javax.persistence.*;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.Map;
 
 /**
@@ -35,8 +34,7 @@ public class ProfileEntity extends BaseEntity {
     private UserEntity user;
 
     @NotNull
-    @Max(value = 100, message = "User id can't have more than 100 characters")
-    @Min(value = 3, message = "User id need to be have at least 3 characters")
+    @Size(min = 3, max = 100, message = "Profile id can't have more than 100 characters and less than 3")
     @Column(name = "profile_id", unique = true)
     private String profileId;
 

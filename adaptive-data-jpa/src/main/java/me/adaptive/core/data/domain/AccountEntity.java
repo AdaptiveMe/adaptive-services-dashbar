@@ -17,9 +17,8 @@
 package me.adaptive.core.data.domain;
 
 import javax.persistence.*;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.Map;
 
 /**
@@ -31,15 +30,13 @@ public class AccountEntity extends BaseEntity {
 
 
     @NotNull
-    @Max(value = 100, message = "Account id can't have more than 100 characters")
-    @Min(value = 3, message = "Account id need to be have at least 3 characters")
+    @Size(min = 3, max = 100, message = "Account id can't have more than 100 characters and less than 3")
     @Column(name = "account_id", unique = true)
     private String accountId;
 
     @NotNull
     @Column(name = "name", length = 100)
-    @Max(value = 100, message = "Account name can't have more than 100 characters")
-    @Min(value = 3, message = "Account name need to be have at least 3 characters")
+    @Size(min = 3, max = 100, message = "Account name can't have more than 100 characters and less than 3")
     private String name;
 
     @ElementCollection(fetch = FetchType.EAGER)
