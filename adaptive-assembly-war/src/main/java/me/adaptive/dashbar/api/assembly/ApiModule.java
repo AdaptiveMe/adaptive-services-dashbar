@@ -17,6 +17,10 @@
 package me.adaptive.dashbar.api.assembly;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.name.Names;
+import me.adaptive.core.data.SpringContextHolder;
+import me.adaptive.core.data.api.WorkspaceEntityService;
+import me.adaptive.core.data.domain.WorkspaceEntity;
 import org.eclipse.che.api.analytics.AnalyticsModule;
 import org.eclipse.che.api.auth.AuthenticationService;
 import org.eclipse.che.api.auth.oauth.OAuthTokenProvider;
@@ -63,6 +67,9 @@ import org.everrest.core.impl.async.AsynchronousJobPool;
 import org.everrest.core.impl.async.AsynchronousJobService;
 import org.everrest.guice.PathKey;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @DynaModule
 public class ApiModule extends AbstractModule {
     @Override
@@ -78,9 +85,17 @@ public class ApiModule extends AbstractModule {
         bind(UserService.class);
         bind(UserProfileService.class);
 
+        //TODO find a better way to do this
+        List<WorkspaceEntity> workspaces = SpringContextHolder.getApplicationContext().getBean(WorkspaceEntityService.class).findAll();
+        List<String> ids = new ArrayList<>(workspaces.size());
+        workspaces.stream().forEach(workspaceEntity -> ids.add(workspaceEntity.getWorkspaceId()));
+        bind(String[].class).annotatedWith(Names.named("vfs.local.id")).toInstance(ids.toArray(new String[ids.size()]));
+
+
         bind(LocalFileSystemRegistryPlugin.class);
 
-        bind(LocalFSMountStrategy.class).to(MappedDirectoryLocalFSMountStrategy.class);
+        //Important it will create automatically a workspace folder upon workspace creation
+        bind(LocalFSMountStrategy.class).to(WorkspaceHashLocalFSMountStrategy.class);
         bind(WorkspaceToDirectoryMappingService.class);
 
         bind(BuilderSelectionStrategy.class).to(LastInUseBuilderSelectionStrategy.class);

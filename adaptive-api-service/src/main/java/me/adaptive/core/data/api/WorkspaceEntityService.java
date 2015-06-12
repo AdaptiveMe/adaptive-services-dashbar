@@ -83,4 +83,8 @@ public class WorkspaceEntityService {
     public Optional<WorkspaceEntity> findByWorkspaceId(String workspaceId) {
         return workspaceEntityRepository.findByWorkspaceId(workspaceId);
     }
+
+    public List<WorkspaceEntity> findAll() {
+        return workspaceEntityRepository.findAll();
+    }
 }
