@@ -60,7 +60,7 @@ public class AdaptiveAccountDao implements AccountDao {
 
     @Override
     public void create(Account account) throws ConflictException {
-        if(accountEntityService.exists(account)){
+        if (accountEntityService.findByAccountId(account.getId()).isPresent()) {
             throw new ConflictException(String.format("Account with id %s already exists.", account.getId()));
         }
         accountEntityService.createAccountEntity(account);
@@ -134,7 +134,7 @@ public class AdaptiveAccountDao implements AccountDao {
     public void addMember(Member member) throws NotFoundException, ConflictException {
 
 
-        if (accountEntityService.exists(new Account().withId(member.getAccountId()))) {
+        if (!accountEntityService.findByAccountId(member.getAccountId()).isPresent()) {
             throw new NotFoundException(String.format("Not found account %s", member.getAccountId()));
         }
 
@@ -202,7 +202,9 @@ public class AdaptiveAccountDao implements AccountDao {
 
     @Override
     public Subscription getSubscriptionById(String subscriptionId) throws NotFoundException {
-        throw new UnsupportedOperationException("Not Implemented");
+        Subscription s = new Subscription();
+        s.setId(subscriptionId);
+        return s;
 //        lock.readLock().lock();
 //        try {
 //            Subscription subscription = null;
@@ -222,7 +224,7 @@ public class AdaptiveAccountDao implements AccountDao {
 
     @Override
     public List<Subscription> getActiveSubscriptions(String accountId) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return Collections.EMPTY_LIST;
 //        final List<Subscription> result = new LinkedList<>();
 //        lock.readLock().lock();
 //        try {
@@ -239,7 +241,7 @@ public class AdaptiveAccountDao implements AccountDao {
 
     @Override
     public Subscription getActiveSubscription(String accountId, String serviceId) {
-        throw new UnsupportedOperationException("Not Implemented");
+        return new Subscription().withAccountId(accountId).withServiceId(serviceId);
 //        lock.readLock().lock();
 //        try {
 //            for (Subscription subscription : subscriptions) {
