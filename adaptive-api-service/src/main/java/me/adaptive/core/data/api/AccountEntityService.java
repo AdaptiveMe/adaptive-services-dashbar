@@ -20,7 +20,6 @@ import me.adaptive.core.data.repo.AccountRepository;
 import org.eclipse.che.api.account.server.dao.Account;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 
@@ -48,12 +47,6 @@ public class AccountEntityService {
             return accountRepository.save(toAccountEntity(account, Optional.<AccountEntity>empty()));
         }
         return optional.get();
-    }
-
-    public boolean exists(Account account) {
-        return (StringUtils.hasText(account.getId()) && accountRepository.findByAccountId(account.getId()).isPresent())
-                ||
-                (StringUtils.hasText(account.getName()) && accountRepository.findByName(account.getName()).isPresent());
     }
 
     public AccountEntity toAccountEntity(Account account, Optional<AccountEntity> accountEntity) {
