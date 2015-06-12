@@ -21,6 +21,7 @@ import com.google.inject.name.Names;
 import me.adaptive.core.data.SpringContextHolder;
 import me.adaptive.core.data.api.WorkspaceEntityService;
 import me.adaptive.core.data.domain.WorkspaceEntity;
+import org.eclipse.che.api.account.server.AccountService;
 import org.eclipse.che.api.analytics.AnalyticsModule;
 import org.eclipse.che.api.auth.AuthenticationService;
 import org.eclipse.che.api.auth.oauth.OAuthTokenProvider;
@@ -79,7 +80,8 @@ public class ApiModule extends AbstractModule {
         bind(AuthenticationService.class);
         bind(WorkspaceService.class);
         bind(ProjectService.class);
-        //bind(AccountService.class); //TODO Implement Account/Subscription/Plan
+
+        bind(AccountService.class); //TODO Implement Account/Subscription/Plan
         bind(ETagResponseFilter.class);
 
         bind(UserService.class);
