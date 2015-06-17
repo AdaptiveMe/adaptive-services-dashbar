@@ -19,14 +19,10 @@ package me.adaptive.core.data.api;
 import me.adaptive.core.data.domain.UserEntity;
 import me.adaptive.core.data.domain.UserTokenEntity;
 import me.adaptive.core.data.repo.UserTokenRepository;
-import me.adaptive.core.data.util.PasswordHash;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Optional;
 import java.util.Set;
 
@@ -35,6 +31,9 @@ import java.util.Set;
  */
 @Service
 public class UserTokenEntityService {
+
+
+    private static final String SALT = "yyxFHMF6zYwcm8ePH7Uk";
 
     @Autowired
     private UserTokenRepository userTokenRepository;
@@ -48,15 +47,12 @@ public class UserTokenEntityService {
 
     private String getToken(UserEntity user){
         StringBuilder builder = new StringBuilder(user.getUserId());
-        builder.append(user.hashCode())
+
+        builder.append(user.getUserId())
                 .append(user.getPasswordHash())
-                .append(System.nanoTime());
-        try {
-            return PasswordHash.createHash(builder.toString());
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            LoggerFactory.getLogger(UserTokenEntityService.class).warn("Error creating token", e);
-            return String.valueOf(DigestUtils.sha256Hex(builder.toString()));
-        }
+                .append(System.nanoTime())
+                .append(SALT);
+        return String.valueOf(DigestUtils.sha256Hex(builder.toString()));
     }
 
     public Optional<UserTokenEntity> findByToken(String token) {
