@@ -86,5 +86,10 @@
             <version>${java.web.api}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.che.core</groupId>
+            <artifactId>che-core-vfs-impl</artifactId>
+            <version>${che.version}</version>
+        </dependency>
     </dependencies>
 </project>
