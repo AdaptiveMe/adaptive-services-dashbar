@@ -18,6 +18,8 @@ package me.adaptive.dashbar.api.assembly;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
+import com.google.inject.spring.SpringIntegration;
+import me.adaptive.che.infrastructure.vfs.WorkspaceIdLocalFSMountStrategy;
 import me.adaptive.core.data.SpringContextHolder;
 import me.adaptive.core.data.api.WorkspaceEntityService;
 import me.adaptive.core.data.domain.WorkspaceEntity;
@@ -63,7 +65,9 @@ import org.eclipse.che.security.oauth.OAuthAuthenticationService;
 import org.eclipse.che.security.oauth.OAuthAuthenticatorProvider;
 import org.eclipse.che.security.oauth.OAuthAuthenticatorProviderImpl;
 import org.eclipse.che.security.oauth.OAuthAuthenticatorTokenProvider;
-import org.eclipse.che.vfs.impl.fs.*;
+import org.eclipse.che.vfs.impl.fs.LocalFSMountStrategy;
+import org.eclipse.che.vfs.impl.fs.LocalFileSystemRegistryPlugin;
+import org.eclipse.che.vfs.impl.fs.VirtualFileSystemFSModule;
 import org.everrest.core.impl.async.AsynchronousJobPool;
 import org.everrest.core.impl.async.AsynchronousJobService;
 import org.everrest.guice.PathKey;
@@ -97,8 +101,8 @@ public class ApiModule extends AbstractModule {
         bind(LocalFileSystemRegistryPlugin.class);
 
         //Important it will create automatically a workspace folder upon workspace creation
-        bind(LocalFSMountStrategy.class).to(WorkspaceHashLocalFSMountStrategy.class);
-        bind(WorkspaceToDirectoryMappingService.class);
+        bind(LocalFSMountStrategy.class).toProvider(SpringIntegration.fromSpring(WorkspaceIdLocalFSMountStrategy.class, "workspaceIdLocalFSMountStrategy"));
+        //bind(WorkspaceToDirectoryMappingService.class);
 
         bind(BuilderSelectionStrategy.class).to(LastInUseBuilderSelectionStrategy.class);
         bind(BuilderService.class);
