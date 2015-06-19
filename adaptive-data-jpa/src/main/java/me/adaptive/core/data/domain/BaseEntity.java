@@ -69,7 +69,7 @@ public abstract class BaseEntity {
     }
 
     @SuppressWarnings("unused")
-    private Long getId() {
+    public Long getId() {
         return id;
     }
 
