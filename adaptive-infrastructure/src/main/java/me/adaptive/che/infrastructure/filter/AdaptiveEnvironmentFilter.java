@@ -27,10 +27,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.*;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
 
@@ -41,6 +43,8 @@ import java.util.Set;
 public class AdaptiveEnvironmentFilter implements Filter {
 
     private static final String TOKEN_PARAM = "token";
+
+    private static final String COOKIE_NAME = TOKEN_PARAM;
 
     @Autowired
     private UserTokenEntityService userTokenEntityService;
@@ -55,7 +59,7 @@ public class AdaptiveEnvironmentFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        if(servletRequest.getParameter(TOKEN_PARAM)!= null){
+        if (getToken(servletRequest) != null) {
             Optional<UserTokenEntity> token = userTokenEntityService.findByToken(servletRequest.getParameter(TOKEN_PARAM));
             if (token.isPresent()) {
 
@@ -80,6 +84,20 @@ public class AdaptiveEnvironmentFilter implements Filter {
         }else {
             filterChain.doFilter(servletRequest, servletResponse);
         }
+    }
+
+    private String getToken(ServletRequest request) {
+        String token = request.getParameter(TOKEN_PARAM);
+        if (token == null) {
+            Optional<Cookie> cookie = Arrays.asList(((HttpServletRequest) request).getCookies())
+                    .stream()
+                    .filter(c -> c.getName().equals(COOKIE_NAME))
+                    .findFirst();
+            if (cookie.isPresent()) {
+                token = cookie.get().getValue();
+            }
+        }
+        return token;
     }
 
     @Override
