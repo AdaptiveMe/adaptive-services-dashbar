@@ -89,12 +89,14 @@ public class AdaptiveEnvironmentFilter implements Filter {
     private String getToken(ServletRequest request) {
         String token = request.getParameter(TOKEN_PARAM);
         if (token == null) {
-            Optional<Cookie> cookie = Arrays.asList(((HttpServletRequest) request).getCookies())
-                    .stream()
-                    .filter(c -> c.getName().equals(COOKIE_NAME))
-                    .findFirst();
-            if (cookie.isPresent()) {
-                token = cookie.get().getValue();
+            if (((HttpServletRequest) request).getCookies() != null) {
+                Optional<Cookie> cookie = Arrays.asList(((HttpServletRequest) request).getCookies())
+                        .stream()
+                        .filter(c -> c.getName() != null && COOKIE_NAME.equals(c.getName()))
+                        .findFirst();
+                if (cookie.isPresent()) {
+                    token = cookie.get().getValue();
+                }
             }
         }
         return token;
