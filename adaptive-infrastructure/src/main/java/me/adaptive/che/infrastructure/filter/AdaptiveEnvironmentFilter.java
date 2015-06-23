@@ -23,6 +23,8 @@ import me.adaptive.core.data.domain.WorkspaceMemberEntity;
 import org.eclipse.che.commons.env.EnvironmentContext;
 import org.eclipse.che.commons.user.User;
 import org.eclipse.che.commons.user.UserImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +48,8 @@ public class AdaptiveEnvironmentFilter implements Filter {
 
     private static final String COOKIE_NAME = TOKEN_PARAM;
 
+    public static final Logger LOG = LoggerFactory.getLogger(AdaptiveEnvironmentFilter.class);
+
     @Autowired
     private UserTokenEntityService userTokenEntityService;
 
@@ -59,8 +63,15 @@ public class AdaptiveEnvironmentFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        if (getToken(servletRequest) != null) {
-            Optional<UserTokenEntity> token = userTokenEntityService.findByToken(servletRequest.getParameter(TOKEN_PARAM));
+
+        String tokenString = null;
+        try {
+            tokenString = getToken(servletRequest);
+        } catch (Exception e) {
+            LOG.info("error extracting token from request");
+        }
+        if (tokenString != null) {
+            Optional<UserTokenEntity> token = userTokenEntityService.findByToken(tokenString);
             if (token.isPresent()) {
 
                 EnvironmentContext environmentContext = EnvironmentContext.getCurrent();
