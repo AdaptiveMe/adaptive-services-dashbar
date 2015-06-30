@@ -16,6 +16,7 @@
 
 package me.adaptive.che.infrastructure.dao;
 
+import me.adaptive.che.infrastructure.filter.AdaptiveEnvironmentFilter;
 import me.adaptive.core.data.api.UserEntityService;
 import me.adaptive.core.data.api.UserTokenEntityService;
 import me.adaptive.core.data.domain.UserEntity;
@@ -29,13 +30,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 
 @Service("adaptiveAuthenticationDao")
 public class AdaptiveAuthenticationDao implements AuthenticationDao {
+
+    public static final String COOKIE_DELETE_VALUE = "deleted-token";
+    private static final int COOKIE_MAX_AGE = 3600 * 2; //2h in seconds
 
     @Autowired
     UserTokenEntityService userTokenService;
@@ -64,24 +70,18 @@ public class AdaptiveAuthenticationDao implements AuthenticationDao {
             } else {
                 token = tokens.stream().findAny().get().getToken();
             }
-        } else if (tokenAccessCookie != null) {
-            Optional<UserTokenEntity> tokenEntity = userTokenService.findByToken(tokenAccessCookie.getValue());
-            if (!tokenEntity.isPresent()) {
-                throw new AuthenticationException("Cookie token invalid");
-            } else if (!tokenEntity.get().isActive()) {
-                throw new AuthenticationException("Cookie token inactive");
-            }else{
-                token = tokenEntity.get().getToken();
-            }
         } else {
             throw new AuthenticationException("No credentials provided");
         }
 
-        return Response.ok().entity((DtoFactory.getInstance().createDto(Token.class).withValue(token))).build();
+        return Response.ok().cookie(
+                new NewCookie(new Cookie(AdaptiveEnvironmentFilter.COOKIE_NAME, token), "", COOKIE_MAX_AGE, true))
+                .entity((DtoFactory.getInstance().createDto(Token.class).withValue(token))).build();
     }
 
     @Override
     public Response logout(String token, Cookie tokenAccessCookie, UriInfo uriInfo) {
-        return Response.ok().build();
+        NewCookie newCookie = new NewCookie(AdaptiveEnvironmentFilter.COOKIE_NAME, COOKIE_DELETE_VALUE, "/", null, Cookie.DEFAULT_VERSION, null, 1, new Date(0), false, false);
+        return Response.ok().cookie(newCookie).build();
     }
 }

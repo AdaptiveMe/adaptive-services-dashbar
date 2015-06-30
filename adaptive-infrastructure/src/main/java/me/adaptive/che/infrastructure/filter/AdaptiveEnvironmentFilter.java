@@ -16,6 +16,7 @@
 
 package me.adaptive.che.infrastructure.filter;
 
+import me.adaptive.che.infrastructure.dao.AdaptiveAuthenticationDao;
 import me.adaptive.core.data.api.UserTokenEntityService;
 import me.adaptive.core.data.api.WorkspaceMemberService;
 import me.adaptive.core.data.domain.UserTokenEntity;
@@ -46,7 +47,7 @@ public class AdaptiveEnvironmentFilter implements Filter {
 
     private static final String TOKEN_PARAM = "token";
 
-    private static final String COOKIE_NAME = TOKEN_PARAM;
+    public static final String COOKIE_NAME = TOKEN_PARAM;
 
     public static final Logger LOG = LoggerFactory.getLogger(AdaptiveEnvironmentFilter.class);
 
@@ -67,33 +68,29 @@ public class AdaptiveEnvironmentFilter implements Filter {
         String tokenString = null;
         try {
             tokenString = getToken(servletRequest);
-        } catch (Exception e) {
-            LOG.info("error extracting token from request");
-        }
-        if (tokenString != null) {
-            Optional<UserTokenEntity> token = userTokenEntityService.findByToken(tokenString);
-            if (token.isPresent()) {
+            if (tokenString != null && !tokenString.equals(AdaptiveAuthenticationDao.COOKIE_DELETE_VALUE)) {
+                Optional<UserTokenEntity> token = userTokenEntityService.findByToken(tokenString);
+                if (token.isPresent()) {
 
-                EnvironmentContext environmentContext = EnvironmentContext.getCurrent();
-                //TODO Left it commented out so we can have a reference of the roles
-                //Collections.addAll(roles, new String[]{"workspace/admin", "workspace/developer", "system/admin", "system/manager", "user"});
-                User user = new UserImpl(token.get().getUser().getAliases().stream().findFirst().get(), token.get().getUser().getUserId(), token.get().getToken(), token.get().getUser().getRoles(), false);
-                Set<WorkspaceMemberEntity> workspaces = workspaceMemberService.findByUserId(token.get().getUser().getUserId());
-                //TODO Check how to set the correct workspace to the context
-                try {
+                    EnvironmentContext environmentContext = EnvironmentContext.getCurrent();
+                    //TODO Left it commented out so we can have a reference of the roles
+                    //Collections.addAll(roles, new String[]{"workspace/admin", "workspace/developer", "system/admin", "system/manager", "user"});
+                    User user = new UserImpl(token.get().getUser().getAliases().stream().findFirst().get(), token.get().getUser().getUserId(), token.get().getToken(), token.get().getUser().getRoles(), false);
+                    Set<WorkspaceMemberEntity> workspaces = workspaceMemberService.findByUserId(token.get().getUser().getUserId());
+                    //TODO Check how to set the correct workspace to the context
+
                     if (!workspaces.isEmpty()) {
                         WorkspaceMemberEntity workspaceEntity = workspaces.stream().findFirst().get();
                         environmentContext.setWorkspaceName(workspaceEntity.getWorkspace().getName());
                         environmentContext.setWorkspaceId(workspaceEntity.getWorkspace().getWorkspaceId());
                     }
                     environmentContext.setUser(user);
-                    filterChain.doFilter(this.addUserInRequest((HttpServletRequest) servletRequest, user), servletResponse);
-                } finally {
-                    EnvironmentContext.reset();
+                    servletRequest = this.addUserInRequest((HttpServletRequest) servletRequest, user);
                 }
             }
-        }else {
+        } finally {
             filterChain.doFilter(servletRequest, servletResponse);
+            EnvironmentContext.reset();
         }
     }
 
