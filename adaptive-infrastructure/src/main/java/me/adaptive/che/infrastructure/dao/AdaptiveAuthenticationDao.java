@@ -28,6 +28,7 @@ import org.eclipse.che.api.auth.shared.dto.Token;
 import org.eclipse.che.dto.server.DtoFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.NewCookie;
@@ -52,15 +53,21 @@ public class AdaptiveAuthenticationDao implements AuthenticationDao {
     @Override
     public Response login(Credentials credentials, Cookie tokenAccessCookie, UriInfo uriInfo) throws AuthenticationException {
         String token;
-        if (credentials != null && credentials.getUsername() != null && credentials.getPassword() != null) {
+        if (validCredentials(credentials)) {
 
             Optional<UserEntity> user = userService.findByEmail(credentials.getUsername());
             if (!user.isPresent()) {
-                throw new AuthenticationException(String.format("User %s not found", credentials.getUsername()));
+                // TODO check a way to make the servlet handle exceptions
+                // For some reason the Exceptions are not being handled by the servlet and a HTTP 500 is being the answer
+                // So we're handling it here
+                // throw new AuthenticationException(String.format("User %s not found", credentials.getUsername()));
+                return Response.status(Response.Status.NOT_FOUND).entity(String.format("User %s not found", credentials.getUsername())).build();
             }
 
             if (!userService.validatePassword(credentials.getPassword(), user.get().getPasswordHash())) {
-                throw new AuthenticationException("Invalid Credentials");
+                //same thing as above
+                //throw new AuthenticationException("Invalid Credentials");
+                return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid Credentials").build();
             }
 
             Set<UserTokenEntity> tokens = userTokenService.findByUser(user.get());
@@ -71,7 +78,9 @@ public class AdaptiveAuthenticationDao implements AuthenticationDao {
                 token = tokens.stream().findAny().get().getToken();
             }
         } else {
-            throw new AuthenticationException("No credentials provided");
+            //Same stuff as other exceptions above
+            //throw new AuthenticationException("No credentials provided");
+            return Response.status(Response.Status.BAD_REQUEST).entity("No credentials provided").build();
         }
 
         return Response.ok().cookie(
@@ -83,5 +92,14 @@ public class AdaptiveAuthenticationDao implements AuthenticationDao {
     public Response logout(String token, Cookie tokenAccessCookie, UriInfo uriInfo) {
         NewCookie newCookie = new NewCookie(AdaptiveEnvironmentFilter.COOKIE_NAME, COOKIE_DELETE_VALUE, "/", null, Cookie.DEFAULT_VERSION, null, 1, new Date(0), false, false);
         return Response.ok().cookie(newCookie).build();
+    }
+
+    private boolean validCredentials(Credentials credentials) {
+        return credentials != null
+                && credentials.getUsername() != null
+                && credentials.getPassword() != null
+                && !StringUtils.isEmpty(credentials.getUsername())
+                && !StringUtils.isEmpty(credentials.getPassword());
+
     }
 }
