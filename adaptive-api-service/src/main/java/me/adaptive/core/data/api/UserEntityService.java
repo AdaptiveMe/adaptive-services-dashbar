@@ -38,7 +38,7 @@ public class UserEntityService {
     private UserRepository userRepository;
 
     public Optional<UserEntity> findByEmail(String email) {
-        return userRepository.findByAliasesContains(email);
+        return userRepository.findByAliases(email);
     }
 
     public UserEntity save(UserEntity entity) {
@@ -82,7 +82,7 @@ public class UserEntityService {
     }
 
     public static void main(String[] args) throws InvalidKeySpecException, NoSuchAlgorithmException {
-        String password = "rafael";
+        String password = "hector";
         System.out.println("password = " + password);
         String passwordHash = new UserEntityService().generatePasswordHash(password);
         System.out.println("passwordHash = " + passwordHash);
