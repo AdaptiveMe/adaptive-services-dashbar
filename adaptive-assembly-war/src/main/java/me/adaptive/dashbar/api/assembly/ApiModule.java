@@ -33,6 +33,7 @@ import org.eclipse.che.api.builder.BuilderService;
 import org.eclipse.che.api.builder.LastInUseBuilderSelectionStrategy;
 import org.eclipse.che.api.builder.internal.BuilderModule;
 import org.eclipse.che.api.builder.internal.SlaveBuilderService;
+import org.eclipse.che.api.core.rest.ApiExceptionMapper;
 import org.eclipse.che.api.core.rest.ApiInfoService;
 import org.eclipse.che.api.core.rest.CoreRestModule;
 import org.eclipse.che.api.factory.FactoryModule;
@@ -79,6 +80,9 @@ import java.util.List;
 public class ApiModule extends AbstractModule {
     @Override
     protected void configure() {
+
+        bind(ApiExceptionMapper.class);
+
         bind(ApiInfoService.class);
 
         bind(AuthenticationService.class);

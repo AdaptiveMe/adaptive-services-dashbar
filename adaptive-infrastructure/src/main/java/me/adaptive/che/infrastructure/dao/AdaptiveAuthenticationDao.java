@@ -57,17 +57,11 @@ public class AdaptiveAuthenticationDao implements AuthenticationDao {
 
             Optional<UserEntity> user = userService.findByEmail(credentials.getUsername());
             if (!user.isPresent()) {
-                // TODO check a way to make the servlet handle exceptions
-                // For some reason the Exceptions are not being handled by the servlet and a HTTP 500 is being the answer
-                // So we're handling it here
-                // throw new AuthenticationException(String.format("User %s not found", credentials.getUsername()));
-                return Response.status(Response.Status.NOT_FOUND).entity(String.format("User %s not found", credentials.getUsername())).build();
+                throw new AuthenticationException(String.format("User %s not found", credentials.getUsername()));
             }
 
             if (!userService.validatePassword(credentials.getPassword(), user.get().getPasswordHash())) {
-                //same thing as above
-                //throw new AuthenticationException("Invalid Credentials");
-                return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid Credentials").build();
+                throw new AuthenticationException("Invalid Credentials");
             }
 
             Set<UserTokenEntity> tokens = userTokenService.findByUser(user.get());
@@ -78,9 +72,7 @@ public class AdaptiveAuthenticationDao implements AuthenticationDao {
                 token = tokens.stream().findAny().get().getToken();
             }
         } else {
-            //Same stuff as other exceptions above
-            //throw new AuthenticationException("No credentials provided");
-            return Response.status(Response.Status.BAD_REQUEST).entity("No credentials provided").build();
+            throw new AuthenticationException("No credentials provided");
         }
 
         return Response.ok().cookie(
