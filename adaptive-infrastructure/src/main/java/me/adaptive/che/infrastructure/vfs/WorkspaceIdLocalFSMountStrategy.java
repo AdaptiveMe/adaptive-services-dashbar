@@ -38,6 +38,7 @@ import java.util.Optional;
 @Service("workspaceIdLocalFSMountStrategy")
 public class WorkspaceIdLocalFSMountStrategy implements LocalFSMountStrategy {
 
+
     @Autowired
     private WorkspaceEntityService workspaceEntityService;
 
@@ -61,8 +62,17 @@ public class WorkspaceIdLocalFSMountStrategy implements LocalFSMountStrategy {
     }
 
     private File getMountPath(WorkspaceEntity workspaceEntity) {
-        File mountPath = new File(root, DigestUtils.md5Hex(workspaceEntity.getId().toString()));
+        File mountPath = new File(root, getWorkspaceFolderName(workspaceEntity.getId()));
         return mountPath;
+    }
+
+    public String getWorkspaceFolderName(Long workspaceId) {
+        return DigestUtils.md5Hex(workspaceId.toString());
+    }
+
+    //TODO exception handling
+    public String getWorkspaceFolderName(String workspaceId) {
+        return getWorkspaceFolderName(workspaceEntityService.findByWorkspaceId(workspaceId).get().getId());
     }
 
     @PostConstruct
