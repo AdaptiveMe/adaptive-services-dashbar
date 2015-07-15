@@ -29,6 +29,7 @@
         <module>adaptive-infrastructure</module>
         <module>adaptive-assembly-war</module>
         <module>adaptive-che-plugin</module>
+        <module>adaptive-infra-client</module>
     </modules>
     <properties>
         <dashbar.version>1.0-SNAPSHOT</dashbar.version>
