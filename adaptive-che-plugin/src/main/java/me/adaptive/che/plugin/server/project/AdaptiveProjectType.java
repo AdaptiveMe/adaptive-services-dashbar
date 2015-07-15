@@ -19,6 +19,7 @@
 package me.adaptive.che.plugin.server.project;
 
 import com.google.inject.Singleton;
+import me.adaptive.che.plugin.server.me.adaptive.che.plugin.server.builder.AdaptiveBuilder;
 import org.eclipse.che.api.project.server.type.ProjectType;
 import org.eclipse.che.ide.Constants;
 
@@ -30,11 +31,14 @@ import java.util.Arrays;
 @Singleton
 public class AdaptiveProjectType extends ProjectType {
 
+    public static final String TYPE = "adaptive";
+    public static final String FRAMEWORK_NAME = "Adaptive";
+
     public AdaptiveProjectType() {
-        super("adaptive", "Adaptive Project", true, false);
+        super(TYPE, "Adaptive Project", true, false);
         addConstantDefinition(Constants.LANGUAGE, Constants.LANGUAGE, "javascript");
-        addConstantDefinition(Constants.FRAMEWORK, Constants.FRAMEWORK, "Adaptive");
-        setDefaultBuilder("adaptive");
+        addConstantDefinition(Constants.FRAMEWORK, Constants.FRAMEWORK, FRAMEWORK_NAME);
+        setDefaultBuilder(AdaptiveBuilder.BUILDER_NAME);
         addRunnerCategories(Arrays.asList("javascript"));
     }
 }
