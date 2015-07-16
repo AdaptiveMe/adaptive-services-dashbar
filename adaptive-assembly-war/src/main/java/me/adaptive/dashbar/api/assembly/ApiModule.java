@@ -39,12 +39,7 @@ import org.eclipse.che.api.core.rest.CoreRestModule;
 import org.eclipse.che.api.factory.FactoryModule;
 import org.eclipse.che.api.project.server.BaseProjectModule;
 import org.eclipse.che.api.project.server.ProjectService;
-import org.eclipse.che.api.runner.LastInUseRunnerSelectionStrategy;
-import org.eclipse.che.api.runner.RunnerAdminService;
-import org.eclipse.che.api.runner.RunnerSelectionStrategy;
-import org.eclipse.che.api.runner.RunnerService;
 import org.eclipse.che.api.runner.internal.RunnerModule;
-import org.eclipse.che.api.runner.internal.SlaveRunnerService;
 import org.eclipse.che.api.user.server.UserProfileService;
 import org.eclipse.che.api.user.server.UserService;
 import org.eclipse.che.api.vfs.server.VirtualFileSystemModule;
@@ -113,10 +108,10 @@ public class ApiModule extends AbstractModule {
         bind(BuilderAdminService.class);
         bind(SlaveBuilderService.class);
 
-        bind(RunnerSelectionStrategy.class).to(LastInUseRunnerSelectionStrategy.class);
-        bind(RunnerService.class);
-        bind(RunnerAdminService.class);
-        bind(SlaveRunnerService.class);
+        //bind(RunnerSelectionStrategy.class).to(LastInUseRunnerSelectionStrategy.class);
+        //bind(RunnerService.class);
+        //bind(RunnerAdminService.class);
+        //bind(SlaveRunnerService.class);
 
         bind(DebuggerService.class);
         bind(FormatService.class);
