@@ -18,6 +18,7 @@
 
 package me.adaptive.che.infrastructure.vfs;
 
+import me.adaptive.core.data.SpringContextHolder;
 import me.adaptive.core.data.api.WorkspaceEntityService;
 import me.adaptive.core.data.domain.WorkspaceEntity;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -38,6 +39,18 @@ import java.util.Optional;
 @Service("workspaceIdLocalFSMountStrategy")
 public class WorkspaceIdLocalFSMountStrategy implements LocalFSMountStrategy {
 
+
+    /**
+     * Could not Inject itself using guice due to bad Java 8 support, so the method have to be static
+     * //TODO find a way to fix this
+     *
+     * @param workspaceId
+     * @return
+     */
+    //TODO exception handling
+    public static String getWorkspaceFolderName(String workspaceId) {
+        return getWorkspaceFolderName(SpringContextHolder.getApplicationContext().getBean(WorkspaceEntityService.class).findByWorkspaceId(workspaceId).get().getId());
+    }
 
     @Autowired
     private WorkspaceEntityService workspaceEntityService;
@@ -66,14 +79,10 @@ public class WorkspaceIdLocalFSMountStrategy implements LocalFSMountStrategy {
         return mountPath;
     }
 
-    public String getWorkspaceFolderName(Long workspaceId) {
+    public static String getWorkspaceFolderName(Long workspaceId) {
         return DigestUtils.md5Hex(workspaceId.toString());
     }
 
-    //TODO exception handling
-    public String getWorkspaceFolderName(String workspaceId) {
-        return getWorkspaceFolderName(workspaceEntityService.findByWorkspaceId(workspaceId).get().getId());
-    }
 
     @PostConstruct
     private void init() {

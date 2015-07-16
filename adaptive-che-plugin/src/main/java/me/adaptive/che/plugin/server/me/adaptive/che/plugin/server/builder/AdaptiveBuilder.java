@@ -51,7 +51,6 @@ public class AdaptiveBuilder extends Builder {
     private ApiClient apiClient;
     private File buildsRoot;
     private String buildLogName;
-    private WorkspaceIdLocalFSMountStrategy workspaceIdLocalFSMountStrategy;
 
     /**
      * Default constructor.
@@ -70,13 +69,11 @@ public class AdaptiveBuilder extends Builder {
                            @Named("adaptive.api.client.token") String token,
                            @Named("adaptive.build.result.root") String buildsRoot,
                            @Named("adaptive.build.log.name") String buildLogName,
-                           WorkspaceIdLocalFSMountStrategy workspaceIdLocalFSMountStrategy,
                            EventService eventService) {
         super(rootDirectory, numberOfWorkers, queueSize, cleanBuildResultDelay, eventService);
         apiClient = new ApiClient(endpoint, token);
         this.buildsRoot = new File(buildsRoot);
         this.buildLogName = buildLogName;
-        this.workspaceIdLocalFSMountStrategy = workspaceIdLocalFSMountStrategy;
     }
 
 
@@ -150,7 +147,7 @@ public class AdaptiveBuilder extends Builder {
      * @return the folder name
      */
     private String getWorkspaceFolderFromRequest(BaseBuilderRequest request) {
-        return workspaceIdLocalFSMountStrategy.getWorkspaceFolderName(request.getWorkspace());
+        return WorkspaceIdLocalFSMountStrategy.getWorkspaceFolderName(request.getWorkspace());
     }
 
 
