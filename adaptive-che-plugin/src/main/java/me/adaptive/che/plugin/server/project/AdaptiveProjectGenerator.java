@@ -19,13 +19,19 @@
 package me.adaptive.che.plugin.server.project;
 
 import com.google.inject.Singleton;
+import me.adaptive.che.plugin.server.project.generator.GeneratorCommandBuilder;
+import me.adaptive.che.plugin.server.util.SimpleCommandLineExecutor;
 import org.eclipse.che.api.core.ConflictException;
 import org.eclipse.che.api.core.ForbiddenException;
 import org.eclipse.che.api.core.ServerException;
 import org.eclipse.che.api.project.server.FolderEntry;
 import org.eclipse.che.api.project.server.handlers.CreateProjectHandler;
 import org.eclipse.che.api.project.server.type.AttributeValue;
+import org.eclipse.che.vfs.impl.fs.VirtualFileImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Map;
 
 /**
@@ -35,9 +41,30 @@ import java.util.Map;
 @Singleton
 public class AdaptiveProjectGenerator implements CreateProjectHandler {
 
+
+    private static Logger LOG = LoggerFactory.getLogger(AdaptiveProjectGenerator.class);
+
+    public static final String OPTION_GENERATE = "generate";
+
+
+
     @Override
     public void onCreateProject(FolderEntry baseFolder, Map<String, AttributeValue> attributes, Map<String, String> options) throws ForbiddenException, ConflictException, ServerException {
+        if (options != null && options.containsKey(OPTION_GENERATE)) {
+            //TODO check if we should start it in another thread
+            try {
+                File workDir = ((VirtualFileImpl) baseFolder.getVirtualFile()).getIoFile();
+                File generatorLog = ((VirtualFileImpl) baseFolder.createFile("generator.log", new byte[0], "text/plain").getVirtualFile()).getIoFile();
+                SimpleCommandLineExecutor executor = new SimpleCommandLineExecutor();
+                executor.execute(new GeneratorCommandBuilder(baseFolder.getVirtualFile().getName()).withAttributes(attributes).withOptions(options), workDir, generatorLog);
+                if (!executor.isSuccess()) {
+                    LOG.warn("There was an error executing the generator command");
+                }
 
+            } catch (Exception e) {
+                LOG.warn("Error executing the generator", e);
+            }
+        }
     }
 
     @Override

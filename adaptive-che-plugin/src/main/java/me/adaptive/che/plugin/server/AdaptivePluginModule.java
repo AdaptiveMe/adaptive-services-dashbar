@@ -21,8 +21,10 @@ package me.adaptive.che.plugin.server;
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
 import me.adaptive.che.plugin.server.me.adaptive.che.plugin.server.builder.AdaptiveBuilder;
+import me.adaptive.che.plugin.server.project.AdaptiveProjectGenerator;
 import me.adaptive.che.plugin.server.project.AdaptiveProjectType;
 import org.eclipse.che.api.builder.internal.Builder;
+import org.eclipse.che.api.project.server.handlers.ProjectHandler;
 import org.eclipse.che.api.project.server.type.ProjectType;
 import org.eclipse.che.inject.DynaModule;
 
@@ -35,6 +37,8 @@ public class AdaptivePluginModule extends AbstractModule {
     protected void configure() {
         Multibinder<ProjectType> projectTypeMultibinder = Multibinder.newSetBinder(binder(), ProjectType.class);
         projectTypeMultibinder.addBinding().to(AdaptiveProjectType.class);
+
+        Multibinder.newSetBinder(binder(), ProjectHandler.class).addBinding().to(AdaptiveProjectGenerator.class);
 
         Multibinder<Builder> builderMultibinder = Multibinder.newSetBinder(binder(), Builder.class);
         builderMultibinder.addBinding().to(AdaptiveBuilder.class);
