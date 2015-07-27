@@ -80,7 +80,7 @@
         <property name="dataSource" ref="dataSource"/>
     </bean>
 
-    <task:annotation-driven executor="myExecutor" scheduler="myScheduler"/>
+    <!--<task:annotation-driven executor="myExecutor" scheduler="myScheduler"/>
     <task:executor id="myExecutor" pool-size="15"/>
-    <task:scheduler id="myScheduler" pool-size="10"/>
+    <task:scheduler id="myScheduler" pool-size="10"/>-->
 </beans>
