@@ -45,16 +45,18 @@ public class AdaptiveProjectGenerator implements CreateProjectHandler {
     private static Logger LOG = LoggerFactory.getLogger(AdaptiveProjectGenerator.class);
 
     public static final String OPTION_GENERATE = "generate";
+    public static final String GENERATION_LOG = "generator.log";
 
 
 
     @Override
     public void onCreateProject(FolderEntry baseFolder, Map<String, AttributeValue> attributes, Map<String, String> options) throws ForbiddenException, ConflictException, ServerException {
-        if (options != null && options.containsKey(OPTION_GENERATE)) {
+        //TODO enable only when generate is passed
+        //if (options != null && options.containsKey(OPTION_GENERATE)) {
             //TODO check if we should start it in another thread
             try {
                 File workDir = ((VirtualFileImpl) baseFolder.getVirtualFile()).getIoFile();
-                File generatorLog = ((VirtualFileImpl) baseFolder.createFile("generator.log", new byte[0], "text/plain").getVirtualFile()).getIoFile();
+                File generatorLog = ((VirtualFileImpl) baseFolder.createFile(GENERATION_LOG, new byte[0], "text/plain").getVirtualFile()).getIoFile();
                 SimpleCommandLineExecutor executor = new SimpleCommandLineExecutor();
                 executor.execute(new GeneratorCommandBuilder(baseFolder.getVirtualFile().getName()).withAttributes(attributes).withOptions(options), workDir, generatorLog);
                 if (!executor.isSuccess()) {
@@ -64,7 +66,7 @@ public class AdaptiveProjectGenerator implements CreateProjectHandler {
             } catch (Exception e) {
                 LOG.warn("Error executing the generator", e);
             }
-        }
+        //}
     }
 
     @Override
