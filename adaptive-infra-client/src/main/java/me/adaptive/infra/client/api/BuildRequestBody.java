@@ -31,4 +31,8 @@ public class BuildRequestBody {
     public void setMode(String mode) {
         this.mode = mode;
     }
+
+    public BuildRequestBody(String mode) {
+        this.mode = mode;
+    }
 }

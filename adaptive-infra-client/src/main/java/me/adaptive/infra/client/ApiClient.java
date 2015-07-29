@@ -19,7 +19,6 @@
 package me.adaptive.infra.client;
 
 import me.adaptive.infra.client.api.BuilderApi;
-import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 
 /**
@@ -51,12 +50,7 @@ public class ApiClient {
     private RestAdapter adapter() {
         RestAdapter.Builder builder = new RestAdapter.Builder();
         if (token != null) {
-            builder.setRequestInterceptor(new RequestInterceptor() {
-                @Override
-                public void intercept(RequestFacade request) {
-                    request.addHeader(TOKEN_HEADER, token);
-                }
-            });
+            builder.setRequestInterceptor(request -> request.addHeader(TOKEN_HEADER, token));
         }
         return builder.setEndpoint(endpoint).build();
     }
