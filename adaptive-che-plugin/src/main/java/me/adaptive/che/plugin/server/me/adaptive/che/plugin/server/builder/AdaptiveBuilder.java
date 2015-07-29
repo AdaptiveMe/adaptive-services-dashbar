@@ -182,9 +182,9 @@ public class AdaptiveBuilder extends Builder {
                 apiClient.getBuilderApi().build(
                         configuration.getRequest().getId(),
                         getWorkspaceFolderFromRequest(configuration.getRequest()),
-                        configuration.getRequest().getProject()
+                        configuration.getRequest().getProjectDescriptor().getName()
                         , configuration.getRequest().getOptions().getOrDefault(PLATFORM_OPTION, "android"),
-                        new BuildRequestBody()); //TODO build the correct body based on the configuration & request
+                        new BuildRequestBody("debug")); //TODO build the correct body based on the configuration & request
                 status = BuildStatus.IN_PROGRESS;
             } catch (Exception e) {
                 status = BuildStatus.FAILED;
