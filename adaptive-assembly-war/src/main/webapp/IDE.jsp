@@ -1,3 +1,4 @@
+<%@ page import="org.eclipse.che.commons.env.EnvironmentContext" %>
 <%--
 
     Copyright (c) 2012-2015 Codenvy, S.A.
@@ -33,7 +34,7 @@ from Codenvy S.A..
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <title>Codenvy Developer Environment</title>
-    <link rel="shortcut icon" href="/che/_app/favicon.ico"/>
+    <link rel="shortcut icon" href="/ide/_app/favicon.ico"/>
     <link href="http://fonts.googleapis.com/css?family=Droid+Sans+Mono" rel="stylesheet" type="text/css"/>
 
     <script type="text/javascript" language="javascript">
@@ -53,13 +54,13 @@ from Codenvy S.A..
 
         window.IDE.config = {
 
-            "context": "/che",
+            "context": "/ide",
 
-            "restContext": "/che/api",
+            "restContext": "/api",
 
-            "workspaceName": "rafael-ws",
+            "workspaceName": "<%= EnvironmentContext.getCurrent().getWorkspaceName() %>",
 
-            "workspaceId": "rafael",
+            "workspaceId": "<%= EnvironmentContext.getCurrent().getWorkspaceId() %>",
 
             "projectName": window.location.pathname.split("/")[3] ? window.location.pathname.split("/")[3] : null,
 
@@ -67,7 +68,7 @@ from Codenvy S.A..
 
             "hiddenFiles": ".*",
 
-            "javaCodeAssistant": "/che/api"
+            "javaCodeAssistant": "/api"
 
         };
 
@@ -85,7 +86,7 @@ from Codenvy S.A..
 
     </script>
 
-    <script type="text/javascript" language="javascript" src="/che/_app/browserNotSupported.js"></script>
-    <script type="text/javascript" language="javascript" src="/che/_app/_app.nocache.js"></script>
+    <script type="text/javascript" language="javascript" src="/ide/_app/browserNotSupported.js"></script>
+    <script type="text/javascript" language="javascript" src="/ide/_app/_app.nocache.js"></script>
 </head>
 </html>
