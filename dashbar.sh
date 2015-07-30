@@ -14,4 +14,3 @@ echo "Forwarding command"
 cd deps/che
 ./che.sh stop
 ./che.sh $*
-fi
