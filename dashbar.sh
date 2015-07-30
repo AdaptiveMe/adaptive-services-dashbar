@@ -12,10 +12,6 @@ echo "Copying built war to tomcat"
 cp $WAR deps/che/assembly-sdk/target/tomcat-ide/webapps/che.war
 echo "Forwarding command"
 cd deps/che
-if [ $1 = "restart" ];
-    then
-        ./che.sh stop
-        ./che.sh jpda start
-    else
-        ./che.sh $*
+./che.sh stop
+./che.sh $*
 fi
