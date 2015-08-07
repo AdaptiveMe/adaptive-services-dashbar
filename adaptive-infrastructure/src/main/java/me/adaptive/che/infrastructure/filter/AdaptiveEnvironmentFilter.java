@@ -65,7 +65,7 @@ public class AdaptiveEnvironmentFilter implements Filter {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
 
-        String tokenString = null;
+        String tokenString;
         try {
             tokenString = getToken(servletRequest);
             if (tokenString != null && !tokenString.equals(AdaptiveAuthenticationDao.COOKIE_DELETE_VALUE)) {
@@ -95,17 +95,46 @@ public class AdaptiveEnvironmentFilter implements Filter {
     }
 
     private String getToken(ServletRequest request) {
+        /**
+         * Tries to get the token from several places in the following order
+         * Request Param
+         * Session Attribute
+         * Cookie
+         */
+
+        /**
+         * Request Param
+         */
         String token = request.getParameter(TOKEN_PARAM);
         if (token == null) {
-            if (((HttpServletRequest) request).getCookies() != null) {
-                Optional<Cookie> cookie = Arrays.asList(((HttpServletRequest) request).getCookies())
-                        .stream()
-                        .filter(c -> c.getName() != null && COOKIE_NAME.equals(c.getName()))
-                        .findFirst();
-                if (cookie.isPresent()) {
-                    token = cookie.get().getValue();
+            /**
+             * Session
+             */
+            Object sessionToken = ((HttpServletRequest) request).getSession().getAttribute(TOKEN_PARAM);
+            if (sessionToken != null) {
+                token = sessionToken.toString();
+            }
+            if (token == null) {
+                /**
+                 * Cookie
+                 */
+                if (((HttpServletRequest) request).getCookies() != null) {
+                    Optional<Cookie> cookie = Arrays.asList(((HttpServletRequest) request).getCookies())
+                            .stream()
+                            .filter(c -> c.getName() != null && COOKIE_NAME.equals(c.getName()))
+                            .findFirst();
+                    if (cookie.isPresent()) {
+                        token = cookie.get().getValue();
+                    }
                 }
             }
+        }
+
+        /**
+         * Save the token to the session
+         */
+        if (token != null) {
+            ((HttpServletRequest) request).getSession().setAttribute(TOKEN_PARAM, token);
         }
         return token;
     }
