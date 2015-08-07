@@ -24,6 +24,7 @@ import me.adaptive.che.plugin.server.me.adaptive.che.plugin.server.builder.Adapt
 import me.adaptive.che.plugin.server.project.AdaptiveProjectGenerator;
 import me.adaptive.che.plugin.server.project.AdaptiveProjectType;
 import org.eclipse.che.api.builder.internal.Builder;
+import org.eclipse.che.api.project.server.ProjectImporter;
 import org.eclipse.che.api.project.server.handlers.ProjectHandler;
 import org.eclipse.che.api.project.server.type.ProjectType;
 import org.eclipse.che.inject.DynaModule;
@@ -39,8 +40,10 @@ public class AdaptivePluginModule extends AbstractModule {
         projectTypeMultibinder.addBinding().to(AdaptiveProjectType.class);
 
         Multibinder.newSetBinder(binder(), ProjectHandler.class).addBinding().to(AdaptiveProjectGenerator.class);
+        Multibinder.newSetBinder(binder(), ProjectImporter.class).addBinding().to(AdaptiveProjectGenerator.class);
 
         Multibinder<Builder> builderMultibinder = Multibinder.newSetBinder(binder(), Builder.class);
         builderMultibinder.addBinding().to(AdaptiveBuilder.class);
+
     }
 }
