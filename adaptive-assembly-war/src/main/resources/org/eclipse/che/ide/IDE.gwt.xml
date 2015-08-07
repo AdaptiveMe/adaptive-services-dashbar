@@ -37,19 +37,19 @@
     <inherits name='org.eclipse.che.ide.ext.web.Web'/>
     <inherits name='org.eclipse.che.ide.ext.java.Java'/>
     <inherits name='org.eclipse.che.ide.jseditor.java.JsJavaEditor'/>
-    <inherits name='org.eclipse.che.ide.extension.ant.Ant'/>
+    <!--inherits name='org.eclipse.che.ide.extension.ant.Ant'/-->
     <inherits name='org.eclipse.che.ide.ext.java.jdi.JavaRuntimeExtension'/>
     <inherits name='org.eclipse.che.ide.extension.builder.Builder'/>
     <inherits name='org.eclipse.che.ide.ext.runner.Runner'/>
-    <inherits name='org.eclipse.che.ide.extension.maven.Maven'/>
-    <inherits name='org.eclipse.che.ide.ext.git.Git'/>
-    <inherits name='org.eclipse.che.ide.ext.github.GitHub'/>
-    <inherits name='org.eclipse.che.ide.ext.ssh.Ssh'/>
+    <!--inherits name='org.eclipse.che.ide.extension.maven.Maven'/-->
+    <!--inherits name='org.eclipse.che.ide.ext.git.Git'/-->
+    <!--inherits name='org.eclipse.che.ide.ext.github.GitHub'/-->
+    <!--inherits name='org.eclipse.che.ide.ext.ssh.Ssh'/-->
     <inherits name='org.eclipse.che.ide.editor.codemirror.CodeMirrorEditor'/>
     <inherits name='org.eclipse.che.ide.editor.orion.OrionEditor'/>
 
-    <inherits name='org.eclipse.che.ide.ext.tutorials.Tutorials'/>
-    <inherits name='org.eclipse.che.ide.ext.svn.Subversion'/>
+    <!--inherits name='org.eclipse.che.ide.ext.tutorials.Tutorials'/-->
+    <!--inherits name='org.eclipse.che.ide.ext.svn.Subversion'/-->
 
     <inherits name='org.eclipse.che.env.local.LocalEnvironment'/>
 
