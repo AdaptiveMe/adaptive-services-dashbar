@@ -18,7 +18,7 @@ package me.adaptive.core.data.api;
 import me.adaptive.core.data.domain.UserEntity;
 import me.adaptive.core.data.repo.UserRepository;
 import me.adaptive.core.data.util.PasswordHash;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.eclipse.che.api.user.server.dao.User;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +38,10 @@ public class UserEntityService {
     private UserRepository userRepository;
 
     public Optional<UserEntity> findByEmail(String email) {
+        return userRepository.findByAliases(email);
+    }
+
+    public Optional<UserEntity> findByUsername(String email) {
         return userRepository.findByAliases(email);
     }
 

@@ -19,7 +19,7 @@ import me.adaptive.core.data.domain.AccountEntity;
 import me.adaptive.core.data.domain.AccountMemberEntity;
 import me.adaptive.core.data.domain.UserEntity;
 import me.adaptive.core.data.repo.AccountMemberRepository;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.eclipse.che.api.account.server.dao.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

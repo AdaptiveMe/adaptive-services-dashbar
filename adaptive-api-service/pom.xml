@@ -40,5 +40,10 @@
             <artifactId>che-core-api-workspace</artifactId>
             <version>${che.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.0</version>
+        </dependency>
     </dependencies>
 </project>
