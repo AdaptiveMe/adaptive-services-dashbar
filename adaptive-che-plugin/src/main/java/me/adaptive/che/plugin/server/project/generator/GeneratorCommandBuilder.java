@@ -149,7 +149,7 @@ public class GeneratorCommandBuilder extends CommandLineBuilder {
                 setIosVersion(options.get(Options.IOS_VERSION));
             }
             if (options.containsKey(Options.ANDROID_VERSION)) {
-                setAndroidVersion(Options.ANDROID_VERSION);
+                setAndroidVersion(options.get(Options.ANDROID_VERSION));
             }
         }
         return this;
