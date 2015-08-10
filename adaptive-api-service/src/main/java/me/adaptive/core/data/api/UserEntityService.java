@@ -54,7 +54,7 @@ public class UserEntityService {
     }
 
     public User toUser(UserEntity userEntity){
-        User user = new User().withId(userEntity.getUserId()).withEmail(userEntity.getAliases().stream().findFirst().get()).withPassword(userEntity.getPasswordHash());
+        User user = new User().withId(userEntity.getUserId()).withEmail(userEntity.getAliases().stream().findFirst().get());
         CollectionUtils.addAll(user.getAliases(), userEntity.getAliases().iterator());
         return user;
     }
