@@ -56,7 +56,7 @@ from Codenvy S.A..
 
             "context": "/ide",
 
-            "restContext": "/ide/api",
+            "restContext": "/che/api",
 
             "workspaceName": "<%= EnvironmentContext.getCurrent().getWorkspaceName() %>",
 
@@ -68,7 +68,7 @@ from Codenvy S.A..
 
             "hiddenFiles": ".*",
 
-            "javaCodeAssistant": "/ide/api"
+            "javaCodeAssistant": "/che/api"
 
         };
 
