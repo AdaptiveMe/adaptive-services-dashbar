@@ -16,6 +16,7 @@
 
 package me.adaptive.core.data.api;
 
+import me.adaptive.core.data.domain.UserEntity;
 import me.adaptive.core.data.domain.WorkspaceEntity;
 import me.adaptive.core.data.domain.WorkspaceMemberEntity;
 import me.adaptive.core.data.repo.WorkspaceMemberRepository;
@@ -89,5 +90,15 @@ public class WorkspaceMemberService {
 
     public Set<WorkspaceMemberEntity> findByWorkspaceId(String workspaceId) {
         return workspaceMemberRepository.findByWorkspaceWorkspaceId(workspaceId);
+    }
+
+    public WorkspaceMemberEntity create(Member member) {
+        Optional<UserEntity> userEntity = userService.findByUserId(member.getUserId());
+        WorkspaceMemberEntity workspaceMemberEntity = new WorkspaceMemberEntity();
+        CollectionUtils.addAll(workspaceMemberEntity.getRoles(), member.getRoles().iterator());
+        Optional<WorkspaceEntity> workspace = workspaceEntityService.findByWorkspaceId(member.getWorkspaceId());
+        workspaceMemberEntity.setUser(userEntity.get());
+        workspaceMemberEntity.setWorkspace(workspace.get());
+        return workspaceMemberRepository.save(workspaceMemberEntity);
     }
 }

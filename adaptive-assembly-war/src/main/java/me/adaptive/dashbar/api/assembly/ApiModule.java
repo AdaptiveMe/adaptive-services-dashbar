@@ -19,8 +19,10 @@ package me.adaptive.dashbar.api.assembly;
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 import com.google.inject.spring.SpringIntegration;
+import me.adaptive.che.infrastructure.api.RegistrationModule;
 import me.adaptive.che.infrastructure.vfs.WorkspaceIdLocalFSMountStrategy;
 import me.adaptive.core.data.SpringContextHolder;
+import me.adaptive.core.data.api.UserRegistrationService;
 import me.adaptive.core.data.api.WorkspaceEntityService;
 import me.adaptive.core.data.domain.WorkspaceEntity;
 import org.eclipse.che.api.account.server.AccountService;
@@ -84,6 +86,8 @@ public class ApiModule extends AbstractModule {
         bind(ETagResponseFilter.class);
 
         bind(UserService.class);
+        bind(UserRegistrationService.class).toProvider(SpringIntegration.fromSpring(UserRegistrationService.class, "userRegistrationService"));
+        bind(RegistrationModule.class);
         bind(UserProfileService.class);
 
         //TODO find a better way to do this
