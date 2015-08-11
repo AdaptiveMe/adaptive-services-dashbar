@@ -76,6 +76,9 @@ public class WorkspaceIdLocalFSMountStrategy implements LocalFSMountStrategy {
 
     private File getMountPath(WorkspaceEntity workspaceEntity) {
         File mountPath = new File(root, getWorkspaceFolderName(workspaceEntity.getId()));
+        if (!mountPath.exists()) {
+            mountPath.mkdir();
+        }
         return mountPath;
     }
 
