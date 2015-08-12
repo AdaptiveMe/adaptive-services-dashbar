@@ -98,7 +98,7 @@ public class UserRegistrationService {
             userEntity.getAliases().add(username);
             userEntity.setPasswordHash(userEntityService.generatePasswordHash(password));
             userEntity.getRoles().addAll(DEFAULT_USER_ROLES);
-            userEntity.setUserId(NameGenerator.generate("user", Constants.ID_LENGTH));
+            userEntity.setUserId(NameGenerator.generate("user-", Constants.ID_LENGTH));
             userEntity = userEntityService.save(userEntity);
 
             /**
@@ -112,7 +112,7 @@ public class UserRegistrationService {
              * Account
              */
             AccountEntity account = new AccountEntity();
-            account.setAccountId(NameGenerator.generate("acc", org.eclipse.che.api.account.server.Constants.ID_LENGTH));
+            account.setAccountId(NameGenerator.generate("acc-", org.eclipse.che.api.account.server.Constants.ID_LENGTH));
             account.setName(username + "-account");
             account = accountEntityService.save(account);
             accountMemberEntityService.create(new Member()
@@ -125,8 +125,8 @@ public class UserRegistrationService {
              */
             WorkspaceEntity workspaceEntity = new WorkspaceEntity();
             workspaceEntity.setAccount(account);
-            workspaceEntity.setWorkspaceId(NameGenerator.generate("ws", org.eclipse.che.api.workspace.server.Constants.ID_LENGTH));
-            workspaceEntity.setName(username + "ws");
+            workspaceEntity.setWorkspaceId(NameGenerator.generate("wks-", org.eclipse.che.api.workspace.server.Constants.ID_LENGTH));
+            workspaceEntity.setName(username + "-ws");
             workspaceEntity.setTemporary(false);
             workspaceEntity = workspaceEntityService.create(workspaceEntity);
             workspaceMemberService.create(new org.eclipse.che.api.workspace.server.dao.Member().
