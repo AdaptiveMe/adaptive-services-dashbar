@@ -50,7 +50,7 @@ public class UserRegistrationService {
 
     private static final Set<String> DEFAULT_USER_ROLES = Sets.newHashSet("user");
     private static final List<String> DEFAULT_ACCOUNT_ROLES = Lists.newArrayList("account/owner");
-    private static final List<String> DEFAULT_WORKSPACE_ROLES = Lists.newArrayList("workspace/owner");
+    private static final List<String> DEFAULT_WORKSPACE_ROLES = Lists.newArrayList("workspace/admin", "workspace/developer");
 
 
     @Autowired
