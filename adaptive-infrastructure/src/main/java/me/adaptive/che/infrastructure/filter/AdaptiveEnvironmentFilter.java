@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -73,17 +74,20 @@ public class AdaptiveEnvironmentFilter implements Filter {
                 if (token.isPresent()) {
 
                     EnvironmentContext environmentContext = EnvironmentContext.getCurrent();
+                    Set<String> roles = new HashSet<>(token.get().getUser().getRoles());
                     //TODO Left it commented out so we can have a reference of the roles
                     //Collections.addAll(roles, new String[]{"workspace/admin", "workspace/developer", "system/admin", "system/manager", "user"});
-                    User user = new UserImpl(token.get().getUser().getAliases().stream().findFirst().get(), token.get().getUser().getUserId(), token.get().getToken(), token.get().getUser().getRoles(), false);
-                    Set<WorkspaceMemberEntity> workspaces = workspaceMemberService.findByUserId(token.get().getUser().getUserId());
                     //TODO Check how to set the correct workspace to the context
-
+                    Set<WorkspaceMemberEntity> workspaces = workspaceMemberService.findByUserId(token.get().getUser().getUserId());
                     if (!workspaces.isEmpty()) {
                         WorkspaceMemberEntity workspaceEntity = workspaces.stream().findFirst().get();
+                        roles.addAll(workspaceEntity.getRoles());
+                        //TODO add Account roles to the context
                         environmentContext.setWorkspaceName(workspaceEntity.getWorkspace().getName());
                         environmentContext.setWorkspaceId(workspaceEntity.getWorkspace().getWorkspaceId());
                     }
+
+                    User user = new UserImpl(token.get().getUser().getAliases().stream().findFirst().get(), token.get().getUser().getUserId(), token.get().getToken(), roles, false);
                     environmentContext.setUser(user);
                     servletRequest = this.addUserInRequest((HttpServletRequest) servletRequest, user);
                 }
@@ -133,7 +137,7 @@ public class AdaptiveEnvironmentFilter implements Filter {
         /**
          * Save the token to the session
          */
-        if (token != null) {
+        if (token != null && ((HttpServletRequest) request).getSession().getAttribute(TOKEN_PARAM) == null) {
             ((HttpServletRequest) request).getSession().setAttribute(TOKEN_PARAM, token);
         }
         return token;
