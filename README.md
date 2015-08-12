@@ -5,7 +5,8 @@ AdaptiveMe DashBar Services
 #Running the dashbar
 1. ``./prepare-deps.sh``
 2. edit the ``adaptive-data-jpa/src/main/resources/META-INF/spring/database.properties`` with the database info
-3. ``./dashbar.sh [start|stop]``
+3. add ``CHE_VFS_ROOT`` as a environmental variable with the path to the sshfs mounted folder 
+4. ``./dashbar.sh [start|stop]``
 
 
 #To debug
