@@ -33,10 +33,7 @@ import org.eclipse.che.api.user.shared.dto.UserDescriptor;
 import org.eclipse.che.inject.DynaModule;
 import org.springframework.util.StringUtils;
 
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -85,9 +82,9 @@ public class RegistrationModule extends Service {
     @Path("/create")
     @GenerateLink(rel = LINK_REL_CREATE_USER)
     @Produces(APPLICATION_JSON)
-    public Response create(@ApiParam(value = "Email", required = true) @QueryParam("email") @Required String email,
-                           @ApiParam(value = "Username", required = true) @QueryParam("username") @Required String username,
-                           @ApiParam(value = "Password", required = true) @QueryParam("password") @Required String password,
+    public Response create(@ApiParam(value = "Email", required = true) @FormParam("email") @Required String email,
+                           @ApiParam(value = "Username", required = true) @FormParam("username") @Required String username,
+                           @ApiParam(value = "Password", required = true) @FormParam("password") @Required String password,
                            @Context SecurityContext context) throws UnauthorizedException,
             ConflictException,
             ServerException,
