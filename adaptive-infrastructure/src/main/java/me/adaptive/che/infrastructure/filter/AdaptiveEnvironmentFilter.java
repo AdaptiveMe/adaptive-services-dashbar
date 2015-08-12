@@ -109,7 +109,8 @@ public class AdaptiveEnvironmentFilter implements Filter {
         /**
          * Request Param
          */
-        String token = request.getParameter(TOKEN_PARAM);
+        //TODO this is a quick and dirty fix to work around this issue https://github.com/codenvy/everrest/issues/7
+        String token = !"POST".equals(((HttpServletRequest) request).getMethod()) ? request.getParameter(TOKEN_PARAM) : null;
         if (token == null) {
             /**
              * Session
