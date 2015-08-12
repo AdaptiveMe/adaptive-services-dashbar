@@ -17,15 +17,11 @@
 package me.adaptive.dashbar.api.assembly;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.name.Names;
 import com.google.inject.spring.SpringIntegration;
 import me.adaptive.che.infrastructure.api.MetricsModule;
 import me.adaptive.che.infrastructure.api.RegistrationModule;
 import me.adaptive.che.infrastructure.vfs.WorkspaceIdLocalFSMountStrategy;
-import me.adaptive.core.data.SpringContextHolder;
 import me.adaptive.core.data.api.UserRegistrationService;
-import me.adaptive.core.data.api.WorkspaceEntityService;
-import me.adaptive.core.data.domain.WorkspaceEntity;
 import org.eclipse.che.api.account.server.AccountService;
 import org.eclipse.che.api.analytics.AnalyticsModule;
 import org.eclipse.che.api.auth.AuthenticationService;
@@ -50,6 +46,7 @@ import org.eclipse.che.api.runner.internal.SlaveRunnerService;
 import org.eclipse.che.api.user.server.UserProfileService;
 import org.eclipse.che.api.user.server.UserService;
 import org.eclipse.che.api.vfs.server.VirtualFileSystemModule;
+import org.eclipse.che.api.vfs.server.VirtualFileSystemRegistry;
 import org.eclipse.che.api.workspace.server.WorkspaceService;
 import org.eclipse.che.docs.DocsModule;
 import org.eclipse.che.everrest.CodenvyAsynchronousJobPool;
@@ -60,15 +57,12 @@ import org.eclipse.che.inject.DynaModule;
 import org.eclipse.che.jdt.JavaNavigationService;
 import org.eclipse.che.jdt.JavadocService;
 import org.eclipse.che.jdt.RestNameEnvironment;
+import org.eclipse.che.vfs.impl.fs.AutoMountVirtualFileSystemRegistry;
 import org.eclipse.che.vfs.impl.fs.LocalFSMountStrategy;
-import org.eclipse.che.vfs.impl.fs.LocalFileSystemRegistryPlugin;
 import org.eclipse.che.vfs.impl.fs.VirtualFileSystemFSModule;
 import org.everrest.core.impl.async.AsynchronousJobPool;
 import org.everrest.core.impl.async.AsynchronousJobService;
 import org.everrest.guice.PathKey;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @DynaModule
 public class ApiModule extends AbstractModule {
@@ -92,14 +86,7 @@ public class ApiModule extends AbstractModule {
         bind(MetricsModule.class);
         bind(UserProfileService.class);
 
-        //TODO find a better way to do this
-        List<WorkspaceEntity> workspaces = SpringContextHolder.getApplicationContext().getBean(WorkspaceEntityService.class).findAll();
-        List<String> ids = new ArrayList<>(workspaces.size());
-        workspaces.stream().forEach(workspaceEntity -> ids.add(workspaceEntity.getWorkspaceId()));
-        bind(String[].class).annotatedWith(Names.named("vfs.local.id")).toInstance(ids.toArray(new String[ids.size()]));
-
-
-        bind(LocalFileSystemRegistryPlugin.class);
+        bind(VirtualFileSystemRegistry.class).to(AutoMountVirtualFileSystemRegistry.class);
 
         //Important it will create automatically a workspace folder upon workspace creation
         bind(LocalFSMountStrategy.class).toProvider(SpringIntegration.fromSpring(WorkspaceIdLocalFSMountStrategy.class, "workspaceIdLocalFSMountStrategy"));
