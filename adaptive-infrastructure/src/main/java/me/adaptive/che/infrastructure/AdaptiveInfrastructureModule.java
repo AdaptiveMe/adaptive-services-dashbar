@@ -61,6 +61,8 @@ public class AdaptiveInfrastructureModule extends AbstractModule {
         bind(AuthenticationDao.class).toProvider(SpringIntegration.fromSpring(AdaptiveAuthenticationDao.class,"adaptiveAuthenticationDao"));
         bind(FactoryStore.class).to(InMemoryFactoryStore.class);
         bind(TokenValidator.class).toProvider(SpringIntegration.fromSpring(AdaptiveTokenValidator.class, "adaptiveTokenValidator"));
+
+        SpringIntegration.bindAll(binder(), SpringContextHolder.getApplicationContext());
     }
 
 }
