@@ -28,6 +28,7 @@ import org.eclipse.che.api.core.ConflictException;
 import org.eclipse.che.api.user.server.Constants;
 import org.eclipse.che.api.user.server.dao.Profile;
 import org.eclipse.che.api.user.server.dao.User;
+import org.eclipse.che.api.workspace.server.dao.Workspace;
 import org.eclipse.che.commons.lang.NameGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,7 +126,7 @@ public class UserRegistrationService {
              */
             WorkspaceEntity workspaceEntity = new WorkspaceEntity();
             workspaceEntity.setAccount(account);
-            workspaceEntity.setWorkspaceId(NameGenerator.generate("wks-", org.eclipse.che.api.workspace.server.Constants.ID_LENGTH));
+            workspaceEntity.setWorkspaceId(NameGenerator.generate(Workspace.class.getSimpleName().toLowerCase(), org.eclipse.che.api.workspace.server.Constants.ID_LENGTH));
             workspaceEntity.setName(username + "-ws");
             workspaceEntity.setTemporary(false);
             workspaceEntity = workspaceEntityService.create(workspaceEntity);
