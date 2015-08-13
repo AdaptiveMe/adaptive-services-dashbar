@@ -31,7 +31,7 @@ import java.util.Optional;
 /**
  * Created by panthro on 04/06/15.
  */
-@Service
+@Service("userEntityService")
 public class UserEntityService {
 
     @Autowired
