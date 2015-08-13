@@ -18,8 +18,10 @@ package me.adaptive.che.infrastructure.filter;
 
 import me.adaptive.che.infrastructure.dao.AdaptiveAuthenticationDao;
 import me.adaptive.core.data.api.UserTokenEntityService;
+import me.adaptive.core.data.api.WorkspaceEntityService;
 import me.adaptive.core.data.api.WorkspaceMemberService;
 import me.adaptive.core.data.domain.UserTokenEntity;
+import me.adaptive.core.data.domain.WorkspaceEntity;
 import me.adaptive.core.data.domain.WorkspaceMemberEntity;
 import org.eclipse.che.commons.env.EnvironmentContext;
 import org.eclipse.che.commons.user.User;
@@ -39,6 +41,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by panthro on 08/06/15.
@@ -50,6 +54,8 @@ public class AdaptiveEnvironmentFilter implements Filter {
 
     public static final String COOKIE_NAME = TOKEN_PARAM;
 
+    public static final Pattern WORKSPACE_ID_PATTERN = Pattern.compile(".*\\/(workspace\\w{16}).*");
+
     public static final Logger LOG = LoggerFactory.getLogger(AdaptiveEnvironmentFilter.class);
 
     @Autowired
@@ -57,6 +63,9 @@ public class AdaptiveEnvironmentFilter implements Filter {
 
     @Autowired
     private WorkspaceMemberService workspaceMemberService;
+
+    @Autowired
+    private WorkspaceEntityService workspaceEntityService;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -66,11 +75,11 @@ public class AdaptiveEnvironmentFilter implements Filter {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
 
-        String tokenString;
+        Optional<String> tokenString;
         try {
             tokenString = getToken(servletRequest);
-            if (tokenString != null && !tokenString.equals(AdaptiveAuthenticationDao.COOKIE_DELETE_VALUE)) {
-                Optional<UserTokenEntity> token = userTokenEntityService.findByToken(tokenString);
+            if (tokenString.isPresent() && !tokenString.get().equals(AdaptiveAuthenticationDao.COOKIE_DELETE_VALUE)) {
+                Optional<UserTokenEntity> token = userTokenEntityService.findByToken(tokenString.get());
                 if (token.isPresent()) {
 
                     EnvironmentContext environmentContext = EnvironmentContext.getCurrent();
@@ -78,16 +87,24 @@ public class AdaptiveEnvironmentFilter implements Filter {
                     //TODO Left it commented out so we can have a reference of the roles
                     //Collections.addAll(roles, new String[]{"workspace/admin", "workspace/developer", "system/admin", "system/manager", "user"});
                     //TODO Check how to set the correct workspace to the context
-                    Set<WorkspaceMemberEntity> workspaces = workspaceMemberService.findByUserId(token.get().getUser().getUserId());
-                    if (!workspaces.isEmpty()) {
-                        WorkspaceMemberEntity workspaceEntity = workspaces.stream().findFirst().get();
-                        roles.addAll(workspaceEntity.getRoles());
-                        //TODO add Account roles to the context
-                        environmentContext.setWorkspaceName(workspaceEntity.getWorkspace().getName());
-                        environmentContext.setWorkspaceId(workspaceEntity.getWorkspace().getWorkspaceId());
+
+                    Optional<WorkspaceEntity> workspaceEntityOptional = getWorkspaceIdFromRequest(servletRequest);
+                    Optional<WorkspaceMemberEntity> workspaceMemberEntity = Optional.empty();
+                    if (workspaceEntityOptional.isPresent()) {
+                        workspaceMemberEntity = workspaceMemberService.findByUserIdAndWorkspaceId(token.get().getUser().getUserId(), workspaceEntityOptional.get().getWorkspaceId());
+                    } else {
+                        Set<WorkspaceMemberEntity> workspaceMemberEntities = workspaceMemberService.findByUserId(token.get().getUser().getUserId());
+                        if (!workspaceMemberEntities.isEmpty()) {
+                            workspaceMemberEntity = Optional.ofNullable(workspaceMemberEntities.stream().findFirst().get());
+                            //TODO add Account roles to the context
+                        }
+                    }
+                    if (workspaceMemberEntity.isPresent()) {
+                        roles.addAll(workspaceMemberEntity.get().getRoles());
+                        addWorkspaceToEnvironment(workspaceMemberEntity.get().getWorkspace(), environmentContext);
                     }
 
-                    User user = new UserImpl(token.get().getUser().getAliases().stream().findFirst().get(), token.get().getUser().getUserId(), token.get().getToken(), roles, false);
+                    User user = new UserImpl(token.get().getUser().getAliases().stream().filter(s -> !s.contains("@")).findFirst().get(), token.get().getUser().getUserId(), token.get().getToken(), roles, false);
                     environmentContext.setUser(user);
                     servletRequest = this.addUserInRequest((HttpServletRequest) servletRequest, user);
                 }
@@ -98,7 +115,7 @@ public class AdaptiveEnvironmentFilter implements Filter {
         }
     }
 
-    private String getToken(ServletRequest request) {
+    private Optional<String> getToken(ServletRequest request) {
         /**
          * Tries to get the token from several places in the following order
          * Request Param
@@ -110,16 +127,16 @@ public class AdaptiveEnvironmentFilter implements Filter {
          * Request Param
          */
         //TODO this is a quick and dirty fix to work around this issue https://github.com/codenvy/everrest/issues/7
-        String token = !"POST".equals(((HttpServletRequest) request).getMethod()) ? request.getParameter(TOKEN_PARAM) : null;
-        if (token == null) {
+        Optional<String> token = !"POST".equals(((HttpServletRequest) request).getMethod()) ? Optional.of(request.getParameter(TOKEN_PARAM)) : Optional.<String>empty();
+        if (!token.isPresent()) {
             /**
              * Session
              */
             Object sessionToken = ((HttpServletRequest) request).getSession().getAttribute(TOKEN_PARAM);
             if (sessionToken != null) {
-                token = sessionToken.toString();
+                token = Optional.of(sessionToken.toString());
             }
-            if (token == null) {
+            if (!token.isPresent()) {
                 /**
                  * Cookie
                  */
@@ -129,7 +146,7 @@ public class AdaptiveEnvironmentFilter implements Filter {
                             .filter(c -> c.getName() != null && COOKIE_NAME.equals(c.getName()))
                             .findFirst();
                     if (cookie.isPresent()) {
-                        token = cookie.get().getValue();
+                        token = Optional.of(cookie.get().getValue());
                     }
                 }
             }
@@ -138,10 +155,27 @@ public class AdaptiveEnvironmentFilter implements Filter {
         /**
          * Save the token to the session
          */
-        if (token != null && ((HttpServletRequest) request).getSession().getAttribute(TOKEN_PARAM) == null) {
-            ((HttpServletRequest) request).getSession().setAttribute(TOKEN_PARAM, token);
+        if (token.isPresent() && ((HttpServletRequest) request).getSession().getAttribute(TOKEN_PARAM) == null) {
+            ((HttpServletRequest) request).getSession().setAttribute(TOKEN_PARAM, token.get());
         }
         return token;
+    }
+
+
+    protected Optional<WorkspaceEntity> getWorkspaceIdFromRequest(ServletRequest request) {
+        if (request instanceof HttpServletRequest) {
+            String requestUri = ((HttpServletRequest) request).getRequestURI();
+            Matcher matcher = WORKSPACE_ID_PATTERN.matcher(requestUri);
+            if (matcher.find()) {
+                return workspaceEntityService.findByWorkspaceId(matcher.group(1));
+            }
+        }
+        return Optional.empty();
+    }
+
+    protected void addWorkspaceToEnvironment(WorkspaceEntity workspaceEntity, EnvironmentContext environmentContext) {
+        environmentContext.setWorkspaceName(workspaceEntity.getName());
+        environmentContext.setWorkspaceId(workspaceEntity.getWorkspaceId());
     }
 
     @Override
