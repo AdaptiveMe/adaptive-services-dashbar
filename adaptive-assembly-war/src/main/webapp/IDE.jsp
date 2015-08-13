@@ -39,6 +39,8 @@ from Codenvy S.A..
 
     <script type="text/javascript" language="javascript">
 
+        window.loginUrl = "/";
+
         /**This parameter is needed to define sdk mode.*/
         window.sdk = 1;
 
@@ -71,6 +73,10 @@ from Codenvy S.A..
             "javaCodeAssistant": "/ide/api"
 
         };
+
+        if (window.IDE.config.workspaceName === "null" || window.IDE.config.workspaceId === "null") {
+            window.location.href = window.loginUrl;
+        }
 
         /**
          * Event handlers
