@@ -19,31 +19,22 @@
 package me.adaptive.che.infrastructure.api;
 
 import com.google.inject.Inject;
-import com.wordnik.swagger.annotations.*;
+import com.google.inject.name.Named;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiResponse;
+import com.wordnik.swagger.annotations.ApiResponses;
 import me.adaptive.core.data.api.UserEntityService;
-import me.adaptive.core.data.api.UserRegistrationService;
-import me.adaptive.core.data.repo.UserRepository;
-import org.eclipse.che.api.core.ConflictException;
-import org.eclipse.che.api.core.NotFoundException;
 import org.eclipse.che.api.core.ServerException;
-import org.eclipse.che.api.core.UnauthorizedException;
 import org.eclipse.che.api.core.rest.Service;
 import org.eclipse.che.api.core.rest.annotations.GenerateLink;
-import org.eclipse.che.api.core.rest.annotations.Required;
-import org.eclipse.che.api.user.server.UserService;
-import org.eclipse.che.api.user.server.dao.User;
-import org.eclipse.che.api.user.shared.dto.UserDescriptor;
 import org.eclipse.che.inject.DynaModule;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
-import static org.eclipse.che.api.user.server.Constants.LINK_REL_CREATE_USER;
 
 /**
  * Module for exposing the metrics for the dashbar calls.
@@ -54,12 +45,9 @@ import static org.eclipse.che.api.user.server.Constants.LINK_REL_CREATE_USER;
 @Path("/metrics")
 public class MetricsModule extends Service {
 
-    UserEntityService userRegistrationService;
-
+    @Named("userEntityService")
     @Inject
-    public MetricsModule(UserEntityService userRegistrationService) {
-        this.userRegistrationService = userRegistrationService;
-    }
+    UserEntityService userEntityService;
 
     /**
      * /metrics/user/builds/total/{platform} [android,ios,total]
@@ -85,6 +73,6 @@ public class MetricsModule extends Service {
     @Produces(TEXT_PLAIN)
     public String totalUsers() throws ServerException {
 
-        return String.valueOf(userRegistrationService.count());
+        return String.valueOf(userEntityService.count());
     }
 }
