@@ -35,6 +35,7 @@ import javax.servlet.*;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
+import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
@@ -115,6 +116,20 @@ public class AdaptiveEnvironmentFilter implements Filter {
         }
     }
 
+    /**
+     * //TODO this is a quick and dirty fix to work around this issue https://github.com/codenvy/everrest/issues/7
+     *
+     * @param servletRequest
+     * @return
+     */
+    private boolean isBuggyRequest(ServletRequest servletRequest) {
+        if (servletRequest instanceof HttpServletRequest) {
+            HttpServletRequest request = (HttpServletRequest) servletRequest;
+            return "POST".equals(request.getMethod()) && MediaType.APPLICATION_FORM_URLENCODED.equals(request.getContentType());
+        }
+        return false;
+    }
+
     private Optional<String> getToken(ServletRequest request) {
         /**
          * Tries to get the token from several places in the following order
@@ -126,8 +141,7 @@ public class AdaptiveEnvironmentFilter implements Filter {
         /**
          * Request Param
          */
-        //TODO this is a quick and dirty fix to work around this issue https://github.com/codenvy/everrest/issues/7
-        Optional<String> token = !"POST".equals(((HttpServletRequest) request).getMethod()) ? Optional.ofNullable(request.getParameter(TOKEN_PARAM)) : Optional.<String>empty();
+        Optional<String> token = !isBuggyRequest(request) ? Optional.ofNullable(request.getParameter(TOKEN_PARAM)) : Optional.<String>empty();
         if (!token.isPresent()) {
             /**
              * Session
