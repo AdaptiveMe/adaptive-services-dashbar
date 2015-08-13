@@ -97,4 +97,8 @@ public class UserEntityService {
     public Optional<UserEntity> findByUserId(String userId) {
         return userRepository.findByUserId(userId);
     }
+
+    public long count() {
+        return userRepository.count();
+    }
 }
