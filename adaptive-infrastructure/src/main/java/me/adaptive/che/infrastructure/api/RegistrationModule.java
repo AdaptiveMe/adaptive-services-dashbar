@@ -103,7 +103,7 @@ public class RegistrationModule extends Service {
             @ApiResponse(code = 401, message = "Invalid parameters"),
             @ApiResponse(code = 500, message = "Internal Server Error")})
     @Path("/validate")
-    @POST
+    @GET
     @Produces(APPLICATION_JSON)
     public Response validate(@ApiParam(value = "Email", required = false) @QueryParam("email") String email, @ApiParam(value = "Username", required = false) @QueryParam("username") String username) throws ConflictException {
         if (StringUtils.isEmpty(email) && StringUtils.isEmpty(username)) {
@@ -111,13 +111,15 @@ public class RegistrationModule extends Service {
         }
 
         if (!StringUtils.isEmpty(email)) {
-            userRegistrationService.validateEmail(email);
-            throw new ConflictException("Email not valid or already registered");
+            if (!userRegistrationService.validateEmail(email)) {
+                throw new ConflictException("Email not valid or already registered");
+            }
         }
 
         if (!StringUtils.isEmpty(username)) {
-            userRegistrationService.validateUsername(username);
-            throw new ConflictException("Username not valid or already taken");
+            if (!userRegistrationService.validateUsername(username)) {
+                throw new ConflictException("Username not valid or already taken");
+            }
         }
 
         return Response.ok().build();
