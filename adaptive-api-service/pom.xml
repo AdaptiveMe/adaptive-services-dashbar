@@ -45,5 +45,15 @@
             <artifactId>commons-collections4</artifactId>
             <version>4.0</version>
         </dependency>
+        <dependency>
+            <groupId>me.adaptive.services.components</groupId>
+            <artifactId>adaptive-notification-email</artifactId>
+            <version>${adaptive.services.compoments.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>me.adaptive.services.components</groupId>
+            <artifactId>adaptive-notification-template-velocity</artifactId>
+            <version>${adaptive.services.compoments.version}</version>
+        </dependency>
     </dependencies>
 </project>
