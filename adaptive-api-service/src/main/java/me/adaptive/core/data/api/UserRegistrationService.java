@@ -21,8 +21,14 @@ package me.adaptive.core.data.api;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import me.adaptive.core.data.domain.AccountEntity;
+import me.adaptive.core.data.domain.NotificationEntity;
 import me.adaptive.core.data.domain.UserEntity;
 import me.adaptive.core.data.domain.WorkspaceEntity;
+import me.adaptive.core.data.domain.types.NotificationChannel;
+import me.adaptive.core.data.domain.types.NotificationEvent;
+import me.adaptive.core.data.domain.types.NotificationStatus;
+import me.adaptive.core.data.repo.NotificationRepository;
+import me.adaptive.core.data.util.UserPreferences;
 import org.eclipse.che.api.account.server.dao.Member;
 import org.eclipse.che.api.core.ConflictException;
 import org.eclipse.che.api.user.server.Constants;
@@ -66,6 +72,8 @@ public class UserRegistrationService {
     WorkspaceMemberService workspaceMemberService;
     @Autowired
     ProfileEntityService profileEntityService;
+    @Autowired
+    NotificationRepository notificationRepository;
 
     public boolean validateEmail(String email) {
         return isValidEmail(email) && !userEntityService.findByEmail(email).isPresent();
@@ -84,7 +92,7 @@ public class UserRegistrationService {
     }
 
     public boolean validatePassword(String password) {
-        //TODO check password strength maybe using http://stackoverflow.com/questions/3200292/password-strength-checking-library
+        //TODO check password strength maybe using http://stacoverflow.com/questions/3200292/password-strength-checking-library
         return !StringUtils.isEmpty(password) && password.length() >= 6;
     }
 
@@ -100,6 +108,7 @@ public class UserRegistrationService {
             userEntity.setPasswordHash(userEntityService.generatePasswordHash(password));
             userEntity.getRoles().addAll(DEFAULT_USER_ROLES);
             userEntity.setUserId(NameGenerator.generate("user-", Constants.ID_LENGTH));
+            userEntity.getPreferences().put(UserPreferences.Notification.EMAIL, email);
             userEntity = userEntityService.save(userEntity);
 
             /**
@@ -135,8 +144,14 @@ public class UserRegistrationService {
                     .withWorkspaceId(workspaceEntity.getWorkspaceId())
                     .withRoles(DEFAULT_WORKSPACE_ROLES));
 
+            NotificationEntity notificationEntity = new NotificationEntity();
+            notificationEntity.setStatus(NotificationStatus.CREATED);
+            notificationEntity.setUserNotified(userEntity);
+            notificationEntity.setEvent(NotificationEvent.USER_REGISTERED);
+            notificationEntity.setChannel(NotificationChannel.EMAIL);
+            notificationEntity.setDestination(email);
+            notificationRepository.save(notificationEntity);
             return userEntityService.toUser(userEntity);
-
         } catch (Exception e) {
             LOGGER.warn("Error registering user", e);
             throw new ConflictException("Error creating user");
