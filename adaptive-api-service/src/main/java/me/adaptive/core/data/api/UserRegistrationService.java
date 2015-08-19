@@ -29,6 +29,7 @@ import me.adaptive.core.data.domain.types.NotificationEvent;
 import me.adaptive.core.data.domain.types.NotificationStatus;
 import me.adaptive.core.data.repo.NotificationRepository;
 import me.adaptive.core.data.util.UserPreferences;
+import me.adaptive.services.notification.NotificationSender;
 import org.eclipse.che.api.account.server.dao.Member;
 import org.eclipse.che.api.core.ConflictException;
 import org.eclipse.che.api.user.server.Constants;
@@ -74,6 +75,9 @@ public class UserRegistrationService {
     ProfileEntityService profileEntityService;
     @Autowired
     NotificationRepository notificationRepository;
+
+    @Autowired
+    NotificationSender notificationSender;
 
     public boolean validateEmail(String email) {
         return isValidEmail(email) && !userEntityService.findByEmail(email).isPresent();
@@ -150,7 +154,8 @@ public class UserRegistrationService {
             notificationEntity.setEvent(NotificationEvent.USER_REGISTERED);
             notificationEntity.setChannel(NotificationChannel.EMAIL);
             notificationEntity.setDestination(email);
-            notificationRepository.save(notificationEntity);
+            notificationEntity = notificationRepository.saveAndFlush(notificationEntity);
+            notificationSender.releaseNotification(notificationEntity);
             return userEntityService.toUser(userEntity);
         } catch (Exception e) {
             LOGGER.warn("Error registering user", e);
