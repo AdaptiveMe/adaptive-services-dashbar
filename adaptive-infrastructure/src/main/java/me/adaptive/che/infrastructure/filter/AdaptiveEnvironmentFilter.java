@@ -125,7 +125,7 @@ public class AdaptiveEnvironmentFilter implements Filter {
     private boolean isBuggyRequest(ServletRequest servletRequest) {
         if (servletRequest instanceof HttpServletRequest) {
             HttpServletRequest request = (HttpServletRequest) servletRequest;
-            return "POST".equals(request.getMethod()) && MediaType.APPLICATION_FORM_URLENCODED.equals(request.getContentType());
+            return "POST".equals(request.getMethod()) && request.getContentType() != null && request.getContentType().contains(MediaType.APPLICATION_FORM_URLENCODED);
         }
         return false;
     }
