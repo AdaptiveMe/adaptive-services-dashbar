@@ -38,6 +38,7 @@
         <org.everrest.version>1.4.0</org.everrest.version>
         <java.web.api>6.0</java.web.api>
         <org.apache.tomcat.version>7.0.54</org.apache.tomcat.version>
+        <adaptive.services.compoments.version>1.0-SNAPSHOT</adaptive.services.compoments.version>
     </properties>
     <repositories>
         <repository>
