@@ -23,6 +23,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -31,6 +33,8 @@ import org.springframework.stereotype.Repository;
 @Configuration
 @ComponentScan(basePackages = "me.adaptive", excludeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, value = Repository.class))
 @Import(JpaConfiguration.class)
+@EnableAsync
+@EnableScheduling
 public class AdaptiveConfiguration {
 
 
