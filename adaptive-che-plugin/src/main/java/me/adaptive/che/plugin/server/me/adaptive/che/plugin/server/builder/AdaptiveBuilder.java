@@ -169,7 +169,6 @@ public class AdaptiveBuilder extends Builder {
     public class AdaptiveBuilderTask implements Callable<Boolean> {
 
         private BuilderConfiguration configuration;
-        private BuildStatus status;
 
         public AdaptiveBuilderTask(BuilderConfiguration configuration) {
             this.configuration = configuration;
@@ -177,7 +176,6 @@ public class AdaptiveBuilder extends Builder {
 
         @Override
         public Boolean call() throws Exception {
-            status = BuildStatus.IN_QUEUE;
             try {
                 apiClient.getBuilderApi().build(
                         configuration.getRequest().getId(),
@@ -185,26 +183,10 @@ public class AdaptiveBuilder extends Builder {
                         configuration.getRequest().getProjectDescriptor().getName()
                         , configuration.getRequest().getOptions().getOrDefault(PLATFORM_OPTION, "android"),
                         new BuildRequestBody("debug")); //TODO build the correct body based on the configuration & request
-                status = BuildStatus.IN_PROGRESS;
             } catch (Exception e) {
-                status = BuildStatus.FAILED;
                 return false;
             }
-            while (!Arrays.asList(FINISHED_STATUSES).contains(status)) {
-                updateStatusFromRemote();
-                Thread.sleep(STATUS_CHECK_INTERVAL);
-            }
-
-            return BuildStatus.SUCCESSFUL.equals(status);
-        }
-
-        private void updateStatusFromRemote() {
-            try {
-                String remoteStatus = apiClient.getBuilderApi().status(configuration.getRequest().getId());
-                status = BuildStatus.valueOf(remoteStatus.toUpperCase());
-            } catch (Exception e) {
-                status = BuildStatus.FAILED;
-            }
+            return true;
         }
 
     }
