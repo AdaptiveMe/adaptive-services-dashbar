@@ -521,6 +521,7 @@ public class AdaptiveBuildQueue implements BuildQueue {
                 } catch (InterruptedException e) {
                     finished = true;
                 }
+                lastStatus = request.getStatus();
             } while (!finished);
         }
     }
