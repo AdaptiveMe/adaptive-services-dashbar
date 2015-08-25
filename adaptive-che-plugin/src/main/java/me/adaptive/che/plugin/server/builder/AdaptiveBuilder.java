@@ -57,6 +57,8 @@ public class AdaptiveBuilder extends Builder {
     private ApiClient apiClient;
     private File buildsRoot;
     private String buildLogName;
+    @Inject
+    private EventService eventService;
 
     @Inject
     @Named("buildRequestRepository")
@@ -156,7 +158,7 @@ public class AdaptiveBuilder extends Builder {
 
     @Override
     protected BuildLogger createBuildLogger(BuilderConfiguration buildConfiguration, File logFile) throws BuilderException {
-        return new AdaptiveBuilderLogger(buildRequestRepository.findOne(buildConfiguration.getRequest().getId()), this, apiClient);
+        return new AdaptiveBuilderLogger(buildRequestRepository.findOne(buildConfiguration.getRequest().getId()), this, apiClient, eventService);
     }
 
     @Override
@@ -253,7 +255,7 @@ public class AdaptiveBuilder extends Builder {
 
         @Override
         public BuildLogger getBuildLogger() {
-            return new AdaptiveBuilderLogger(entity, AdaptiveBuilder.this, apiClient);
+            return new AdaptiveBuilderLogger(entity, AdaptiveBuilder.this, apiClient, eventService);
         }
 
         @Override

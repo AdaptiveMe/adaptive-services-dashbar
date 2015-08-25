@@ -20,10 +20,12 @@ package me.adaptive.che.plugin.server.builder;
 
 import me.adaptive.core.data.domain.BuildRequestEntity;
 import me.adaptive.infra.client.ApiClient;
-import org.apache.commons.io.IOUtils;
 import org.eclipse.che.api.builder.BuildStatus;
 import org.eclipse.che.api.builder.internal.BuildLogger;
+import org.eclipse.che.api.builder.internal.BuilderEvent;
+import org.eclipse.che.api.core.notification.EventService;
 import org.slf4j.LoggerFactory;
+import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 import java.io.*;
@@ -42,23 +44,25 @@ public class AdaptiveBuilderLogger implements BuildLogger {
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private File myFile;
-    Future<Boolean> populatorTask;
-    private BufferedWriter writer;
+    private Future<Boolean> populatorTask;
+    private EventService eventService;
 
     /**
      * Constructor
      *
-     * @param requestEntity    the requestEntity
-     * @param builder   the adaptiveBuilder
-     * @param apiClient an already authenticated apiClient
+     * @param requestEntity the requestEntity
+     * @param builder       the adaptiveBuilder
+     * @param apiClient     an already authenticated apiClient
      */
-    public AdaptiveBuilderLogger(BuildRequestEntity requestEntity, AdaptiveBuilder builder, ApiClient apiClient) {
+    public AdaptiveBuilderLogger(BuildRequestEntity requestEntity, AdaptiveBuilder builder, ApiClient apiClient, EventService eventService) {
         this.requestEntity = requestEntity;
         File root = builder.getBuildsRoot(requestEntity.getWorkspace().getWorkspaceId(), requestEntity.getProjectName(), requestEntity.getId());
         myFile = new File(root, builder.getBuildLogName());
         this.apiClient = apiClient;
+        this.eventService = eventService;
         //TODO find a way to populate the log as it happens or somehow have a better Reader()
-        //populatorTask = executor.submit(new FileLogPopulator());
+        populatorTask = executor.submit(new FileLogPopulator());
+
     }
 
 
@@ -88,12 +92,7 @@ public class AdaptiveBuilderLogger implements BuildLogger {
 
     @Override
     public void writeLine(String line) throws IOException {
-        if (writer == null) {
-            writer = new BufferedWriter(new FileWriter(myFile));
-        }
-        writer.newLine();
-        writer.write(line);
-
+        //Shouldnt write anything actually
     }
 
     @Override
@@ -105,8 +104,6 @@ public class AdaptiveBuilderLogger implements BuildLogger {
             }
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
-        } finally {
-            writer.close();
         }
 
 
@@ -125,15 +122,12 @@ public class AdaptiveBuilderLogger implements BuildLogger {
         public Boolean call() throws Exception {
 
             while (status.equals(BuildStatus.IN_QUEUE) || status.equals(BuildStatus.IN_PROGRESS)) {
+                if (BuildStatus.IN_PROGRESS.equals(status)) {
+                    readAndWriteLines();
+                }
                 Thread.sleep(500);
                 updateStatus();
             }
-            while (status.equals(BuildStatus.IN_PROGRESS)) {
-                Thread.sleep(500);
-                readAndWriteLines();
-                updateStatus();
-            }
-
             if (status.equals(BuildStatus.SUCCESSFUL) || status.equals(BuildStatus.FAILED)) {
                 readAndWriteLines();
             }
@@ -146,18 +140,22 @@ public class AdaptiveBuilderLogger implements BuildLogger {
          * @throws IOException
          */
         private void readAndWriteLines() throws IOException {
-            String lines = "";
             try {
                 Response response = apiClient.getBuilderApi().logs(requestEntity.getId(), lastReadLine);
-                lines = IOUtils.toString(response.getBody().in());
+                BufferedReader reader = new BufferedReader(new InputStreamReader(response.getBody().in()));
+                for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+                    eventService.publish(BuilderEvent.messageLoggedEvent(requestEntity.getId(), requestEntity.getWorkspace().getWorkspaceId(), requestEntity.getProjectName(), new BuilderEvent.LoggedMessage(line, lastReadLine)));
+                    lastReadLine++;
+                    writeLine(line);
+                }
             } catch (Exception e) {
-                e.printStackTrace();
+                if (e instanceof RetrofitError) {
+                    if (((RetrofitError) e).getResponse().getStatus() != 400) {
+                        LoggerFactory.getLogger(AdaptiveBuilderLogger.class).error("Could not get update status from remote builder", e);
+                    }
+                }
             }
-            BufferedReader reader = new BufferedReader(new StringReader(lines));
-            for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-                lastReadLine++;
-                writeLine(line);
-            }
+
         }
 
         /**

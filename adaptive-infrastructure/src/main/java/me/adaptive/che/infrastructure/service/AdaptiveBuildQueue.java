@@ -22,13 +22,16 @@ import me.adaptive.core.data.api.UserEntityService;
 import me.adaptive.core.data.api.WorkspaceEntityService;
 import me.adaptive.core.data.domain.BuildRequestEntity;
 import me.adaptive.core.data.domain.WorkspaceEntity;
+import me.adaptive.core.data.domain.types.BuildRequestStatus;
 import me.adaptive.core.data.repo.BuildRequestRepository;
 import org.eclipse.che.api.builder.*;
 import org.eclipse.che.api.builder.dto.*;
 import org.eclipse.che.api.builder.internal.BuildTask;
 import org.eclipse.che.api.builder.internal.Builder;
+import org.eclipse.che.api.builder.internal.BuilderEvent;
 import org.eclipse.che.api.builder.internal.BuilderRegistry;
 import org.eclipse.che.api.core.*;
+import org.eclipse.che.api.core.notification.EventService;
 import org.eclipse.che.api.core.rest.HttpJsonHelper;
 import org.eclipse.che.api.core.rest.ServiceContext;
 import org.eclipse.che.api.core.rest.shared.dto.Link;
@@ -60,13 +63,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
-import static me.adaptive.core.data.domain.types.BuildRequestStatus.IN_QUEUE;
+import static me.adaptive.core.data.domain.types.BuildRequestStatus.*;
 
 /**
  * Created by panthro on 21/08/15.
  */
 @Singleton
 public class AdaptiveBuildQueue implements BuildQueue {
+
+    private final List<BuildRequestStatus> FINISHED_STATUSES = Arrays.asList(CANCELLED, SUCCESSFUL, FAILED);
 
     private static final String PLATFORM_OPTION = "platform";
 
@@ -94,6 +99,9 @@ public class AdaptiveBuildQueue implements BuildQueue {
     @Named("adaptive.build.log.name")
     @Inject
     private String buildLogName;
+
+    @Inject
+    private EventService eventService;
 
 
     @Inject
@@ -193,6 +201,8 @@ public class AdaptiveBuildQueue implements BuildQueue {
 
         executor.submit(() -> builder.perform(request));
 
+        //we have to publish events to the eventservice when request becomes IN_PROGRESS
+        executor.submit(new BuildChangesNotifier(buildRequestEntity));
 
         try {
             return getDescriptor(builder, buildRequestEntity, serviceContext);
@@ -473,5 +483,45 @@ public class AdaptiveBuildQueue implements BuildQueue {
     @Override
     public List<BuildTaskDescriptor> getTasks(String workspace, String project) {
         return Collections.emptyList();
+    }
+
+
+    public class BuildChangesNotifier implements Runnable {
+
+        BuildRequestEntity request;
+
+        public BuildChangesNotifier(BuildRequestEntity request) {
+            this.request = request;
+        }
+
+        private void updateRequest() {
+            this.request = buildRequestRepository.findOne(request.getId());
+        }
+
+        @Override
+        public void run() {
+            BuildRequestStatus lastStatus = request.getStatus();
+            boolean finished;
+            do {
+                finished = FINISHED_STATUSES.contains(lastStatus);
+                if (!lastStatus.equals(request.getStatus())) {
+                    switch (request.getStatus()) {
+                        case IN_PROGRESS:
+                            eventService.publish(BuilderEvent.buildTimeStartedEvent(request.getId(), request.getWorkspace().getWorkspaceId(), request.getProjectName(),
+                                    request.getStartTime().getTime()));
+                            eventService.publish(BuilderEvent.beginEvent(request.getId(), request.getWorkspace().getWorkspaceId(), request.getProjectName()));
+                            break;
+                    }
+                }
+
+
+                try {
+                    Thread.sleep(1000L);
+                    updateRequest();
+                } catch (InterruptedException e) {
+                    finished = true;
+                }
+            } while (!finished);
+        }
     }
 }
