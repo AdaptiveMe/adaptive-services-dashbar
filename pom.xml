@@ -33,7 +33,7 @@
     <properties>
         <dashbar.version>1.0-SNAPSHOT</dashbar.version>
         <che.version>3.10.0</che.version>
-        <che.core.version>3.10.0</che.core.version>
+        <che.core.version>3.10.0-adaptive</che.core.version>
         <spring.version>4.2.0.RELEASE</spring.version>
         <org.everrest.version>1.4.0</org.everrest.version>
         <java.web.api>6.0</java.web.api>
