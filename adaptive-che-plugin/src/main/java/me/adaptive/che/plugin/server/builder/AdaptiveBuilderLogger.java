@@ -16,13 +16,13 @@
  *
  */
 
-package me.adaptive.che.plugin.server.me.adaptive.che.plugin.server.builder;
+package me.adaptive.che.plugin.server.builder;
 
+import me.adaptive.core.data.domain.BuildRequestEntity;
 import me.adaptive.infra.client.ApiClient;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.che.api.builder.BuildStatus;
 import org.eclipse.che.api.builder.internal.BuildLogger;
-import org.eclipse.che.api.builder.internal.BuilderConfiguration;
 import org.slf4j.LoggerFactory;
 import retrofit.client.Response;
 
@@ -38,9 +38,9 @@ import java.util.concurrent.*;
 public class AdaptiveBuilderLogger implements BuildLogger {
 
     private ApiClient apiClient;
+    private BuildRequestEntity requestEntity;
 
     private ExecutorService executor = Executors.newSingleThreadExecutor();
-    private final BuilderConfiguration myBuilderConfiguration;
     private File myFile;
     Future<Boolean> populatorTask;
     private BufferedWriter writer;
@@ -48,13 +48,14 @@ public class AdaptiveBuilderLogger implements BuildLogger {
     /**
      * Constructor
      *
-     * @param builderConfiguration the builderConfiguration
-     * @param builder              the adaptiveBuilder
-     * @param apiClient            an already authenticated apiClient
+     * @param requestEntity    the requestEntity
+     * @param builder   the adaptiveBuilder
+     * @param apiClient an already authenticated apiClient
      */
-    public AdaptiveBuilderLogger(BuilderConfiguration builderConfiguration, AdaptiveBuilder builder, ApiClient apiClient) {
-        myBuilderConfiguration = builderConfiguration;
-        myFile = builder.getBuildResultLog(builderConfiguration.getRequest());
+    public AdaptiveBuilderLogger(BuildRequestEntity requestEntity, AdaptiveBuilder builder, ApiClient apiClient) {
+        this.requestEntity = requestEntity;
+        File root = builder.getBuildsRoot(requestEntity.getWorkspace().getWorkspaceId(), requestEntity.getProjectName(), requestEntity.getId());
+        myFile = new File(root, builder.getBuildLogName());
         this.apiClient = apiClient;
         //TODO find a way to populate the log as it happens or somehow have a better Reader()
         //populatorTask = executor.submit(new FileLogPopulator());
@@ -147,7 +148,7 @@ public class AdaptiveBuilderLogger implements BuildLogger {
         private void readAndWriteLines() throws IOException {
             String lines = "";
             try {
-                Response response = apiClient.getBuilderApi().logs(myBuilderConfiguration.getRequest().getId(), lastReadLine);
+                Response response = apiClient.getBuilderApi().logs(requestEntity.getId(), lastReadLine);
                 lines = IOUtils.toString(response.getBody().in());
             } catch (Exception e) {
                 e.printStackTrace();
@@ -164,7 +165,7 @@ public class AdaptiveBuilderLogger implements BuildLogger {
          */
         private void updateStatus() {
             try {
-                status = BuildStatus.valueOf(apiClient.getBuilderApi().status(myBuilderConfiguration.getRequest().getId()));
+                status = BuildStatus.valueOf(apiClient.getBuilderApi().status(requestEntity.getId()));
             } catch (Exception e) {
                 LoggerFactory.getLogger(AdaptiveBuilderLogger.class).warn("Error getting build status", e);
                 status = BuildStatus.FAILED;

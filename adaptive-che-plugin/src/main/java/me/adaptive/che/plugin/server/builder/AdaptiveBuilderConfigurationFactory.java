@@ -16,7 +16,7 @@
  *
  */
 
-package me.adaptive.che.plugin.server.me.adaptive.che.plugin.server.builder;
+package me.adaptive.che.plugin.server.builder;
 
 import org.eclipse.che.api.builder.BuilderException;
 import org.eclipse.che.api.builder.dto.BaseBuilderRequest;

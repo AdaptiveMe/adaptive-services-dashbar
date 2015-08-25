@@ -19,7 +19,7 @@
 package me.adaptive.che.plugin.server.project;
 
 import com.google.inject.Singleton;
-import me.adaptive.che.plugin.server.me.adaptive.che.plugin.server.builder.AdaptiveBuilder;
+import me.adaptive.che.plugin.server.builder.AdaptiveBuilder;
 import org.eclipse.che.api.project.server.type.ProjectType;
 import org.eclipse.che.ide.Constants;
 
