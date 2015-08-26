@@ -45,6 +45,7 @@ import org.eclipse.che.commons.env.EnvironmentContext;
 import org.eclipse.che.commons.user.User;
 import org.eclipse.che.dto.server.DtoFactory;
 import org.eclipse.che.vfs.impl.fs.LocalFSMountStrategy;
+import org.everrest.guice.GuiceUriBuilderImpl;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 import javax.annotation.PostConstruct;
@@ -227,6 +228,11 @@ public class AdaptiveBuildQueue implements BuildQueue {
     }
 
     @Override
+    public BuildTaskDescriptor getTask(Long id) throws NotFoundException, ForbiddenException {
+        return getTask(id, null);
+    }
+
+    @Override
     public BuildTaskDescriptor getTask(Long id, ServiceContext context) throws NotFoundException, ForbiddenException {
         BuildRequestEntity entity = getBuildRequestEntity(id);
         try {
@@ -287,6 +293,7 @@ public class AdaptiveBuildQueue implements BuildQueue {
     @PostConstruct
     void init() {
         executor = Executors.newCachedThreadPool(new CustomizableThreadFactory("BUILD-QUEUE-"));
+        eventService.subscribe(new BuildStatusMessenger(this));
     }
 
     @PreDestroy
@@ -337,6 +344,15 @@ public class AdaptiveBuildQueue implements BuildQueue {
     }
 
     public BuildTaskDescriptor getDescriptor(Builder builder, BuildRequestEntity buildRequestEntity, ServiceContext context) throws BuilderException, NotFoundException {
+        UriBuilder uriBuilder = null;
+        if (context != null) {
+            uriBuilder = context.getServiceUriBuilder();
+        }
+
+        if (uriBuilder == null) {
+            uriBuilder = new GuiceUriBuilderImpl();
+        }
+
         final DtoFactory dtoFactory = DtoFactory.getInstance();
         Long id = buildRequestEntity.getId();
         String workspace = buildRequestEntity.getWorkspace().getWorkspaceId();
@@ -354,25 +370,25 @@ public class AdaptiveBuildQueue implements BuildQueue {
             case IN_PROGRESS:
                 links.add(dtoFactory.createDto(Link.class)
                         .withRel(org.eclipse.che.api.builder.internal.Constants.LINK_REL_GET_STATUS)
-                        .withHref(context.getServiceUriBuilder().path(BuilderService.class, "getStatus").build(workspace, id)
+                        .withHref(uriBuilder.path(BuilderService.class, "getStatus").build(workspace, id)
                                 .toString())
                         .withMethod("GET")
                         .withProduces(MediaType.APPLICATION_JSON));
                 links.add(dtoFactory.createDto(Link.class)
                         .withRel(org.eclipse.che.api.builder.internal.Constants.LINK_REL_CANCEL)
-                        .withHref(context.getServiceUriBuilder().path(BuilderService.class, "cancel").build(workspace, id).toString())
+                        .withHref(uriBuilder.path(BuilderService.class, "cancel").build(workspace, id).toString())
                         .withMethod("POST")
                         .withProduces(MediaType.APPLICATION_JSON));
                 break;
             case SUCCESSFUL:
                 links.add(dtoFactory.createDto(Link.class)
                         .withRel(org.eclipse.che.api.builder.internal.Constants.LINK_REL_VIEW_LOG)
-                        .withHref(context.getServiceUriBuilder().path(BuilderService.class, "getLogs").build(workspace, id).toString())
+                        .withHref(uriBuilder.path(BuilderService.class, "getLogs").build(workspace, id).toString())
                         .withMethod("GET")
                         .withProduces(MediaType.TEXT_PLAIN));
                 links.add(dtoFactory.createDto(Link.class)
                         .withRel(org.eclipse.che.api.builder.internal.Constants.LINK_REL_BROWSE)
-                        .withHref(context.getServiceUriBuilder().path(BuilderService.class, "browseDirectory").queryParam("path", "/")
+                        .withHref(uriBuilder.path(BuilderService.class, "browseDirectory").queryParam("path", "/")
                                 .build(workspace, id).toString())
                         .withMethod("GET")
                         .withProduces(MediaType.TEXT_HTML));
@@ -387,7 +403,7 @@ public class AdaptiveBuildQueue implements BuildQueue {
                         }
                         links.add(dtoFactory.createDto(Link.class)
                                 .withRel(org.eclipse.che.api.builder.internal.Constants.LINK_REL_DOWNLOAD_RESULT)
-                                .withHref(context.getServiceUriBuilder().path(BuilderService.class, "downloadFile")
+                                .withHref(uriBuilder.path(BuilderService.class, "downloadFile")
                                         .queryParam("path", relativePath).build(workspace, id).toString())
                                 .withMethod("GET")
                                 .withProduces(ContentTypeGuesser.guessContentType(ru)));
@@ -511,10 +527,12 @@ public class AdaptiveBuildQueue implements BuildQueue {
                                     request.getStartTime().getTime()));
                             eventService.publish(BuilderEvent.beginEvent(request.getId(), request.getWorkspace().getWorkspaceId(), request.getProjectName()));
                             break;
+                        case CANCELLED:
+                        case SUCCESSFUL:
+                        case FAILED:
+                            eventService.publish(BuilderEvent.doneEvent(request.getId(), request.getWorkspace().getWorkspaceId(), request.getProjectName()));
                     }
                 }
-
-
                 try {
                     Thread.sleep(1000L);
                     updateRequest();
