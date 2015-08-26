@@ -103,6 +103,7 @@ public class AdaptiveBuildQueue implements BuildQueue {
 
     @Inject
     private EventService eventService;
+    private boolean messengerSubscribed = false;
 
 
     @Inject
@@ -142,7 +143,6 @@ public class AdaptiveBuildQueue implements BuildQueue {
 
     @Override
     public BuildTaskDescriptor scheduleBuild(String wsId, String projectName, ServiceContext serviceContext, BuildOptions buildOptions) throws BuilderException {
-
         /**
          * FOR TESTING
          */
@@ -200,6 +200,10 @@ public class AdaptiveBuildQueue implements BuildQueue {
                 .withProjectDescriptor(descriptor);
         fillRequestFromProjectDescriptor(descriptor, request);
 
+        if (!messengerSubscribed) {
+            eventService.subscribe(new BuildStatusMessenger(this, serviceContext));
+            messengerSubscribed = true;
+        }
         eventService.publish(BuilderEvent.queueStartedEvent(request.getId(), wsId, projectName));
         executor.submit(() -> builder.perform(request));
 
@@ -226,11 +230,6 @@ public class AdaptiveBuildQueue implements BuildQueue {
     @Override
     public BuildTaskDescriptor scheduleDependenciesAnalyze(String wsId, String project, String type, ServiceContext serviceContext, BuildOptions buildOptions) throws BuilderException {
         return null;
-    }
-
-    @Override
-    public BuildTaskDescriptor getTask(Long id) throws NotFoundException, ForbiddenException {
-        return getTask(id, null);
     }
 
     @Override
@@ -294,7 +293,6 @@ public class AdaptiveBuildQueue implements BuildQueue {
     @PostConstruct
     void init() {
         executor = Executors.newCachedThreadPool(new CustomizableThreadFactory("BUILD-QUEUE-"));
-        eventService.subscribe(new BuildStatusMessenger(this));
     }
 
     @PreDestroy
@@ -351,7 +349,7 @@ public class AdaptiveBuildQueue implements BuildQueue {
         }
 
         if (uriBuilder == null) {
-            uriBuilder = new GuiceUriBuilderImpl();
+            uriBuilder = new GuiceUriBuilderImpl().path(BuilderService.class);
         }
 
         final DtoFactory dtoFactory = DtoFactory.getInstance();
@@ -371,28 +369,29 @@ public class AdaptiveBuildQueue implements BuildQueue {
             case IN_PROGRESS:
                 links.add(dtoFactory.createDto(Link.class)
                         .withRel(org.eclipse.che.api.builder.internal.Constants.LINK_REL_GET_STATUS)
-                        .withHref(uriBuilder.path(BuilderService.class, "getStatus").build(workspace, id)
+                        .withHref(uriBuilder.clone().path(BuilderService.class, "getStatus").build(workspace, id)
                                 .toString())
                         .withMethod("GET")
                         .withProduces(MediaType.APPLICATION_JSON));
                 links.add(dtoFactory.createDto(Link.class)
                         .withRel(org.eclipse.che.api.builder.internal.Constants.LINK_REL_CANCEL)
-                        .withHref(uriBuilder.path(BuilderService.class, "cancel").build(workspace, id).toString())
+                        .withHref(uriBuilder.clone().path(BuilderService.class, "cancel").build(workspace, id).toString())
                         .withMethod("POST")
                         .withProduces(MediaType.APPLICATION_JSON));
                 break;
             case SUCCESSFUL:
                 links.add(dtoFactory.createDto(Link.class)
                         .withRel(org.eclipse.che.api.builder.internal.Constants.LINK_REL_VIEW_LOG)
-                        .withHref(uriBuilder.path(BuilderService.class, "getLogs").build(workspace, id).toString())
+                        .withHref(uriBuilder.clone().path(BuilderService.class, "getLogs").build(workspace, id).toString())
                         .withMethod("GET")
                         .withProduces(MediaType.TEXT_PLAIN));
                 links.add(dtoFactory.createDto(Link.class)
                         .withRel(org.eclipse.che.api.builder.internal.Constants.LINK_REL_BROWSE)
-                        .withHref(uriBuilder.path(BuilderService.class, "browseDirectory").queryParam("path", "/")
+                        .withHref(uriBuilder.clone().path(BuilderService.class, "browseDirectory").queryParam("path", "/")
                                 .build(workspace, id).toString())
                         .withMethod("GET")
                         .withProduces(MediaType.TEXT_HTML));
+
 
                 BuildTask buildTask = builder.getBuildTask(id);
                 final List<File> results = buildTask.getResult().getResults();
@@ -404,7 +403,7 @@ public class AdaptiveBuildQueue implements BuildQueue {
                         }
                         links.add(dtoFactory.createDto(Link.class)
                                 .withRel(org.eclipse.che.api.builder.internal.Constants.LINK_REL_DOWNLOAD_RESULT)
-                                .withHref(uriBuilder.path(BuilderService.class, "downloadFile")
+                                .withHref(uriBuilder.clone().path(BuilderService.class, "downloadFile")
                                         .queryParam("path", relativePath).build(workspace, id).toString())
                                 .withMethod("GET")
                                 .withProduces(ContentTypeGuesser.guessContentType(ru)));
