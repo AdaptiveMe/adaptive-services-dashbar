@@ -165,8 +165,11 @@ public class AdaptiveBuilderLogger implements BuildLogger {
             try {
                 status = BuildStatus.valueOf(apiClient.getBuilderApi().status(requestEntity.getId()));
             } catch (Exception e) {
-                LoggerFactory.getLogger(AdaptiveBuilderLogger.class).warn("Error getting build status", e);
-                status = BuildStatus.FAILED;
+                if (e instanceof RetrofitError) {
+                    if (((RetrofitError) e).getResponse().getStatus() < 400) { //log errors only if response wasn't bad
+                        LoggerFactory.getLogger(AdaptiveBuilderLogger.class).info("Could not get update status from remote builder", e);
+                    }
+                }
             }
         }
     }
