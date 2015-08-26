@@ -150,8 +150,8 @@ public class AdaptiveBuilderLogger implements BuildLogger {
                 }
             } catch (Exception e) {
                 if (e instanceof RetrofitError) {
-                    if (((RetrofitError) e).getResponse().getStatus() != 400) {
-                        LoggerFactory.getLogger(AdaptiveBuilderLogger.class).error("Could not get update status from remote builder", e);
+                    if (((RetrofitError) e).getResponse().getStatus() < 400) { //log errors only if response wasn't bad
+                        LoggerFactory.getLogger(AdaptiveBuilderLogger.class).info("Could not get update status from remote builder", e);
                     }
                 }
             }
