@@ -39,6 +39,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -183,7 +184,8 @@ public class AdaptiveBuilder extends Builder {
     }
 
     private List<File> getBuildArtifacts(File resultRoot) {
-        return Arrays.asList(resultRoot.listFiles((dir, name) -> !buildLogName.equals(name)));
+        File[] resultFiles = resultRoot.listFiles((dir, name) -> !buildLogName.equals(name));
+        return resultFiles == null ? Collections.emptyList() : Arrays.asList(resultFiles);
     }
 
 
