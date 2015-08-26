@@ -200,6 +200,7 @@ public class AdaptiveBuildQueue implements BuildQueue {
                 .withProjectDescriptor(descriptor);
         fillRequestFromProjectDescriptor(descriptor, request);
 
+        eventService.publish(BuilderEvent.queueStartedEvent(request.getId(), wsId, projectName));
         executor.submit(() -> builder.perform(request));
 
         //we have to publish events to the eventservice when request becomes IN_PROGRESS
@@ -531,15 +532,16 @@ public class AdaptiveBuildQueue implements BuildQueue {
                         case SUCCESSFUL:
                         case FAILED:
                             eventService.publish(BuilderEvent.doneEvent(request.getId(), request.getWorkspace().getWorkspaceId(), request.getProjectName()));
+                            break;
                     }
                 }
                 try {
                     Thread.sleep(1000L);
+                    lastStatus = request.getStatus();
                     updateRequest();
                 } catch (InterruptedException e) {
                     finished = true;
                 }
-                lastStatus = request.getStatus();
             } while (!finished);
         }
     }
