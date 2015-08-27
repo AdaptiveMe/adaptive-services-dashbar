@@ -18,12 +18,18 @@
 
 package me.adaptive.che.infrastructure.service;
 
+import me.adaptive.core.data.SpringContextHolder;
 import me.adaptive.core.data.api.UserEntityService;
 import me.adaptive.core.data.api.WorkspaceEntityService;
 import me.adaptive.core.data.domain.BuildRequestEntity;
+import me.adaptive.core.data.domain.NotificationEntity;
 import me.adaptive.core.data.domain.WorkspaceEntity;
 import me.adaptive.core.data.domain.types.BuildRequestStatus;
+import me.adaptive.core.data.domain.types.NotificationChannel;
+import me.adaptive.core.data.domain.types.NotificationStatus;
 import me.adaptive.core.data.repo.BuildRequestRepository;
+import me.adaptive.core.data.util.UserPreferences;
+import me.adaptive.services.notification.NotificationSender;
 import org.eclipse.che.api.builder.*;
 import org.eclipse.che.api.builder.dto.*;
 import org.eclipse.che.api.builder.internal.BuildTask;
@@ -42,6 +48,7 @@ import org.eclipse.che.api.project.shared.dto.BuilderConfiguration;
 import org.eclipse.che.api.project.shared.dto.BuildersDescriptor;
 import org.eclipse.che.api.project.shared.dto.ProjectDescriptor;
 import org.eclipse.che.commons.env.EnvironmentContext;
+import org.eclipse.che.commons.lang.UrlUtils;
 import org.eclipse.che.commons.user.User;
 import org.eclipse.che.dto.server.DtoFactory;
 import org.eclipse.che.vfs.impl.fs.LocalFSMountStrategy;
@@ -58,6 +65,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -114,6 +124,10 @@ public class AdaptiveBuildQueue implements BuildQueue {
     private BuilderRegistry builderRegistry;
 
     private ExecutorService executor;
+
+    //@Named("notificationSender")
+    //@Inject
+    //private NotificationSender notificationSender;
 
 
     @Override
@@ -276,7 +290,7 @@ public class AdaptiveBuildQueue implements BuildQueue {
 
     @Override
     public Response downloadFile(Long id, String path) throws NotFoundException, ForbiddenException, ServerException {
-        File file = findFile(id, path);
+        File file = path != null ? findFile(id, path) : findDefaultArtifact(id);
         return Response.status(200)
                 .header("Content-Disposition", String.format("attachment; filename=\"%s\"", file.getName()))
                 .type(ContentTypeGuesser.guessContentType(file))
@@ -315,6 +329,20 @@ public class AdaptiveBuildQueue implements BuildQueue {
         return findFile(request, path);
     }
 
+    private File findDefaultArtifact(Long id) throws ServerException, ForbiddenException, NotFoundException {
+        return findDefaultArtifact(buildRequestRepository.findOne(id));
+    }
+
+    private File findDefaultArtifact(BuildRequestEntity request) throws ServerException, ForbiddenException, NotFoundException {
+        //this is to check access writes
+        projectManager.getProject(request.getWorkspace().getWorkspaceId(), request.getProjectName());
+        File[] files = getBuildFolder(request.getWorkspace().getWorkspaceId(), request.getProjectName(), request.getId()).listFiles((dir, name) -> !name.equals(buildLogName));
+        if (files == null || files.length == 0) {
+            throw new NotFoundException("Could not find the default artifact for build " + request.getId());
+        }
+        return files[0];
+    }
+
     private File findFile(BuildRequestEntity request, String path) throws ServerException, ForbiddenException, NotFoundException {
         //this is to check access writes
         projectManager.getProject(request.getWorkspace().getWorkspaceId(), request.getProjectName());
@@ -349,7 +377,7 @@ public class AdaptiveBuildQueue implements BuildQueue {
         }
 
         if (uriBuilder == null) {
-            uriBuilder = new GuiceUriBuilderImpl().path(BuilderService.class);
+            uriBuilder = new GuiceUriBuilderImpl().uri(baseProjectApiUrl).path(BuilderService.class);
         }
 
         final DtoFactory dtoFactory = DtoFactory.getInstance();
@@ -381,11 +409,6 @@ public class AdaptiveBuildQueue implements BuildQueue {
                 break;
             case SUCCESSFUL:
                 links.add(dtoFactory.createDto(Link.class)
-                        .withRel(org.eclipse.che.api.builder.internal.Constants.LINK_REL_VIEW_LOG)
-                        .withHref(uriBuilder.clone().path(BuilderService.class, "getLogs").build(workspace, id).toString())
-                        .withMethod("GET")
-                        .withProduces(MediaType.TEXT_PLAIN));
-                links.add(dtoFactory.createDto(Link.class)
                         .withRel(org.eclipse.che.api.builder.internal.Constants.LINK_REL_BROWSE)
                         .withHref(uriBuilder.clone().path(BuilderService.class, "browseDirectory").queryParam("path", "/")
                                 .build(workspace, id).toString())
@@ -409,6 +432,12 @@ public class AdaptiveBuildQueue implements BuildQueue {
                                 .withProduces(ContentTypeGuesser.guessContentType(ru)));
                     }
                 }
+            case FAILED:
+                links.add(dtoFactory.createDto(Link.class)
+                        .withRel(org.eclipse.che.api.builder.internal.Constants.LINK_REL_VIEW_LOG)
+                        .withHref(uriBuilder.clone().path(BuilderService.class, "getLogs").build(workspace, id).toString())
+                        .withMethod("GET")
+                        .withProduces(MediaType.TEXT_PLAIN));
                 /* not using downloadResultArchive for now
                 if (!results.isEmpty()) {
                     links.add(dtoFactory.createDto(Link.class)
@@ -531,6 +560,14 @@ public class AdaptiveBuildQueue implements BuildQueue {
                         case SUCCESSFUL:
                         case FAILED:
                             eventService.publish(BuilderEvent.doneEvent(request.getId(), request.getWorkspace().getWorkspaceId(), request.getProjectName()));
+                            NotificationEntity notificationEntity = new NotificationEntity();
+                            notificationEntity.setDestination(request.getRequester().getPreferences().get(UserPreferences.Notification.EMAIL));
+                            notificationEntity.setChannel(NotificationChannel.EMAIL); //TODO find a way to determine the right channel based on the user preferences
+                            notificationEntity.setStatus(NotificationStatus.CREATED);
+                            notificationEntity.setUserNotified(request.getRequester());
+                            notificationEntity.setEvent("BUILD_" + request.getStatus().name().toUpperCase());
+                            NotificationSender notificationSender = SpringContextHolder.getApplicationContext().getBean(NotificationSender.class);
+                            notificationSender.releaseNotification(notificationEntity, getBuildNotificationModelMap());
                             break;
                     }
                 }
@@ -542,6 +579,37 @@ public class AdaptiveBuildQueue implements BuildQueue {
                     finished = true;
                 }
             } while (!finished);
+        }
+
+        private Map<String, Object> getBuildNotificationModelMap() {
+            Map<String, Object> model = new HashMap<>();
+            model.put("build", request);
+            Map<String, String> filesMap = new HashMap<>();
+            try {
+                BuildTaskDescriptor descriptor = AdaptiveBuildQueue.this.getDescriptor(builderRegistry.get("adaptive"), request, null);
+
+                descriptor.getLinks(org.eclipse.che.api.builder.internal.Constants.LINK_REL_DOWNLOAD_RESULT)
+                        .stream().filter(filteredLink -> filteredLink.getHref().contains("path"))
+                        .forEach(link -> {
+                            try {
+                                filesMap.put(UrlUtils.getQueryParameters(new URL(link.getHref())).get("path").stream().findAny().get(), link.getHref());
+                            } catch (UnsupportedEncodingException | MalformedURLException e) {
+                                //DO NOTHING just don't add the link
+                            }
+                        });
+
+                Optional<Link> viewLogLink = descriptor.getLinks(org.eclipse.che.api.builder.internal.Constants.LINK_REL_VIEW_LOG)
+                        .stream().findAny();
+                if (viewLogLink.isPresent()) {
+                    model.put("logUrl", viewLogLink.get().getHref());
+                    model.put("logName", buildLogName);
+                }
+
+            } catch (BuilderException | NotFoundException e) {
+                e.printStackTrace();
+            }
+            model.put("filesMap", filesMap);
+            return model;
         }
     }
 }
