@@ -37,9 +37,9 @@ public class GeneratorCommandBuilder extends CommandLineBuilder {
     /**
      * Sample Command
      * yo adaptiveme test latest false "Initializr Bootstrap" "ios,android" --ios-version=8.1 --android-version=5.1
-     * <p>
-     * yo adaptiveme:app [options] [<arg1>] [<arg2>] [<arg3>] [<arg4>] [<arg5>]
-     * <p>
+     *
+     * yo adaptiveme:app [options] [<arg1>] [<arg2>] [<arg3>] [<arg4>] [<arg5>] [<arg6>]
+     *
      * Options:
      * -h,   --help             # Print the generator's options and usage
      * --skip-cache       # Do not remember prompt answers                                                                    Default: false
@@ -47,13 +47,14 @@ public class GeneratorCommandBuilder extends CommandLineBuilder {
      * --start-nibble     # Start the nibble emulator at the end of the generation. The nibble should be installed globally.  Default: false
      * --ios-version      # iOS version selected. ex: 8.1                                                                     Default: false
      * --android-version  # Android version selected. ex: 5.0                                                                 Default: false
-     * <p>
+     *
      * Arguments:
      * arg1  # Your project name                                        Type: String   Required: false
      * arg2  # Adaptive Javascript Library version (defaults = latest)  Type: String   Required: false
      * arg3  # Add typescript support                                   Type: Boolean  Required: false
      * arg4  # Boilerplate for initialize application                   Type: String   Required: false
      * arg5  # Array of platforms selected. ex: [ios,android]           Type: Array    Required: false
+     * arg6  # Application Identifier. ex: me.adaptive.arp              Type: String   Required: false
      */
 
     public static final String PLATFORMS_SEPARATOR = ",";
@@ -72,6 +73,7 @@ public class GeneratorCommandBuilder extends CommandLineBuilder {
         public static final String PLATFORMS = "platforms";
         public static final String IOS_VERSION = "iosVersion";
         public static final String ANDROID_VERSION = "androidVersion";
+        public static final String APP_ID = "appId";
     }
 
     //TODO check defaults
@@ -83,6 +85,7 @@ public class GeneratorCommandBuilder extends CommandLineBuilder {
         private static final String ANDROID_VERSION = "5.0";
         private static final boolean SKIP_INSTALL = true;
         private static final boolean SKIP_SERVER = true;
+        private static final String APP_ID_PREFIX = "me.adaptive.app.";
     }
 
     private String projectName;
@@ -94,6 +97,7 @@ public class GeneratorCommandBuilder extends CommandLineBuilder {
     private boolean skipCache = DEFAULTS.SKIP_SERVER;
     private String iosVersion;
     private String androidVersion;
+    private String appId;
 
 
     public GeneratorCommandBuilder withProjectName(String projectName) {
@@ -131,6 +135,11 @@ public class GeneratorCommandBuilder extends CommandLineBuilder {
         return this;
     }
 
+    public GeneratorCommandBuilder withAppId(String appId) {
+        this.appId = appId;
+        return this;
+    }
+
     public GeneratorCommandBuilder withOptions(Map<String, String> options) {
         if (options != null && !options.keySet().isEmpty()) {
             if (options.containsKey(Options.ADAPTIVE_VERSION)) {
@@ -150,6 +159,9 @@ public class GeneratorCommandBuilder extends CommandLineBuilder {
             }
             if (options.containsKey(Options.ANDROID_VERSION)) {
                 setAndroidVersion(options.get(Options.ANDROID_VERSION));
+            }
+            if (options.containsKey(Options.APP_ID)) {
+                setAppId(options.get(Options.APP_ID));
             }
         }
         return this;
@@ -263,6 +275,18 @@ public class GeneratorCommandBuilder extends CommandLineBuilder {
         this.iosVersion = iosVersion;
     }
 
+    public String getAppId() {
+        if (StringUtils.isEmpty(appId)) {
+            appId = DEFAULTS.APP_ID_PREFIX + getProjectName();
+        }
+        appId = StringUtils.deleteWhitespace(appId);
+        return appId;
+    }
+
+    public void setAppId(String appId) {
+        this.appId = appId;
+    }
+
     @Override
     public String[] getParameters() {
         List<String> paramList = new ArrayList<>();
@@ -273,6 +297,7 @@ public class GeneratorCommandBuilder extends CommandLineBuilder {
         paramList.add(isTypescriptSupport().toString().toLowerCase());
         paramList.add(getBoilerplate());
         paramList.add(StringUtils.join(platforms, PLATFORMS_SEPARATOR));
+        paramList.add(getAppId());
         paramList.add(IOS_VERSION);
         paramList.add(iosVersion);
         paramList.add(ANDROID_VERSION);

@@ -19,11 +19,20 @@
 package me.adaptive.che.plugin.server.util;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.che.api.core.util.CommandLine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by panthro on 22/07/15.
  */
 public abstract class CommandLineBuilder {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CommandLineBuilder.class);
 
     public abstract String[] getParameters();
 
@@ -41,6 +50,14 @@ public abstract class CommandLineBuilder {
                 }
             }
         }
+        LOG.debug("command generated: {}", builder.toString());
         return builder.toString();
+    }
+
+    public CommandLine buildCommandLine() {
+        List<String> params = new ArrayList<>();
+        params.add(getCommand());
+        params.addAll(Arrays.asList(getParameters()));
+        return new CommandLine(params.toArray(new String[params.size()]));
     }
 }
