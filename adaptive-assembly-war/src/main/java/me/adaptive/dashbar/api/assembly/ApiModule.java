@@ -47,9 +47,6 @@ import org.eclipse.che.docs.DocsModule;
 import org.eclipse.che.everrest.CodenvyAsynchronousJobPool;
 import org.eclipse.che.everrest.ETagResponseFilter;
 import org.eclipse.che.inject.DynaModule;
-import org.eclipse.che.jdt.JavaNavigationService;
-import org.eclipse.che.jdt.JavadocService;
-import org.eclipse.che.jdt.RestNameEnvironment;
 import org.eclipse.che.vfs.impl.fs.AutoMountVirtualFileSystemRegistry;
 import org.eclipse.che.vfs.impl.fs.LocalFSMountStrategy;
 import org.eclipse.che.vfs.impl.fs.VirtualFileSystemFSModule;
@@ -107,9 +104,9 @@ public class ApiModule extends AbstractModule {
         //bind(OAuthAuthenticatorProvider.class).to(OAuthAuthenticatorProviderImpl.class);
 
 
-        bind(RestNameEnvironment.class);
-        bind(JavadocService.class);
-        bind(JavaNavigationService.class);
+        //bind(RestNameEnvironment.class);
+        //bind(JavadocService.class);
+        //bind(JavaNavigationService.class);
         bind(AsynchronousJobPool.class).to(CodenvyAsynchronousJobPool.class);
         bind(new PathKey<>(AsynchronousJobService.class, "/async/{ws-id}")).to(AsynchronousJobService.class);
 

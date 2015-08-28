@@ -214,7 +214,7 @@
             <artifactId>che-plugin-java-ext-ant</artifactId>
             <version>${che.version}</version>
         </dependency-->
-        <dependency>
+        <!--dependency>
             <groupId>org.eclipse.che.plugin</groupId>
             <artifactId>che-plugin-java-ext-debugger-java</artifactId>
             <version>${che.version}</version>
@@ -224,37 +224,37 @@
                     <groupId>sun.jdt</groupId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
+        </dependency-->
+        <!--dependency>
             <groupId>org.eclipse.che.plugin</groupId>
             <artifactId>che-plugin-java-ext-java</artifactId>
             <version>${che.version}</version>
-        </dependency>
-        <dependency>
+        </dependency-->
+        <!--dependency>
             <groupId>org.eclipse.che.plugin</groupId>
             <artifactId>che-plugin-java-ext-java-codeassistant</artifactId>
             <version>${che.version}</version>
-        </dependency>
+        </dependency-->
         <!--dependency>
             <groupId>org.eclipse.che.plugin</groupId>
             <artifactId>che-plugin-java-ext-maven</artifactId>
             <version>${che.version}</version>
         </dependency-->
-        <dependency>
+        <!--dependency>
             <groupId>org.eclipse.che.plugin</groupId>
             <artifactId>che-plugin-java-generator-archetype</artifactId>
             <version>${che.version}</version>
-        </dependency>
-        <dependency>
+        </dependency-->
+        <!--dependency>
             <groupId>org.eclipse.che.plugin</groupId>
             <artifactId>che-plugin-java-jseditor</artifactId>
             <version>${che.version}</version>
-        </dependency>
-        <dependency>
+        </dependency-->
+        <!--dependency>
             <groupId>org.eclipse.che.plugin</groupId>
             <artifactId>che-plugin-java-runner-webapps</artifactId>
             <version>${che.version}</version>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>org.eclipse.che.plugin</groupId>
             <artifactId>che-plugin-orion-editor</artifactId>
@@ -430,7 +430,7 @@
                     <extraJvmArgs>-Xss512m -Xmx2048m -XX:MaxPermSize=1024m</extraJvmArgs>
                     <modules>
                         <module>org.eclipse.che.ide.IDE</module>
-                        <module>org.eclipse.che.ide.ext.java.JavaParserWorker</module>
+                        <!--module>org.eclipse.che.ide.ext.java.JavaParserWorker</module-->
                     </modules>
                     <logLevel>INFO</logLevel>
                     <!--<style>PRETTY</style>-->
@@ -448,12 +448,12 @@
                             <goal>run</goal>
                         </goals>
                         <configuration>
-                            <tasks>
+                            <!--tasks>
                                 <move todir="${project.build.directory}/${project.artifactId}-${project.version}/_app/javaParserWorker">
                                     <fileset
                                             dir="${project.build.directory}/${project.artifactId}-${project.version}/javaParserWorker"/>
                                 </move>
-                            </tasks>
+                            </tasks-->
                         </configuration>
                     </execution>
                     <execution>
