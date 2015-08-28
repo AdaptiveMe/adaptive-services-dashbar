@@ -331,4 +331,9 @@ public class AdaptiveBuilder extends Builder {
     public String toString() {
         return BUILDER_NAME;
     }
+
+    @Override
+    protected void cleanup(BuildTask task) {
+        //Nope, there's nothing to cleanup
+    }
 }
