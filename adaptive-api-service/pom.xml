@@ -55,5 +55,22 @@
             <artifactId>adaptive-notification-template-velocity</artifactId>
             <version>${adaptive.services.compoments.version}</version>
         </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>4.1.6.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+            <version>1.2.5.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
