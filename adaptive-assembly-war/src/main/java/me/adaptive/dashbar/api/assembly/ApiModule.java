@@ -19,7 +19,7 @@ package me.adaptive.dashbar.api.assembly;
 import com.google.inject.AbstractModule;
 import com.google.inject.spring.SpringIntegration;
 import me.adaptive.che.infrastructure.api.MetricsModule;
-import me.adaptive.che.infrastructure.api.RegistrationModule;
+import me.adaptive.che.infrastructure.api.RegistrationService;
 import me.adaptive.che.infrastructure.service.AdaptiveBuildQueue;
 import me.adaptive.che.infrastructure.vfs.WorkspaceIdLocalFSMountStrategy;
 import me.adaptive.core.data.api.UserRegistrationService;
@@ -72,7 +72,7 @@ public class ApiModule extends AbstractModule {
 
         bind(UserService.class);
         bind(UserRegistrationService.class).toProvider(SpringIntegration.fromSpring(UserRegistrationService.class, "userRegistrationService"));
-        bind(RegistrationModule.class);
+        bind(RegistrationService.class);
         bind(MetricsModule.class);
         bind(UserProfileService.class);
 
