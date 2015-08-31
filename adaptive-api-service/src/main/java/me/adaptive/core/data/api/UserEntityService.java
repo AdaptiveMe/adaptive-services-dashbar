@@ -37,6 +37,10 @@ public class UserEntityService {
     @Autowired
     private UserRepository userRepository;
 
+    public Optional<UserEntity> findOne(Long id) {
+        return Optional.ofNullable(userRepository.findOne(id));
+    }
+
     public Optional<UserEntity> findByEmail(String email) {
         return userRepository.findByAliases(email);
     }
