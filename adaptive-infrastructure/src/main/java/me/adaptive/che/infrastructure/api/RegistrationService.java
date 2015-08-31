@@ -20,6 +20,7 @@ package me.adaptive.che.infrastructure.api;
 
 import com.google.inject.Inject;
 import com.wordnik.swagger.annotations.*;
+import me.adaptive.core.data.api.UserEntityService;
 import me.adaptive.core.data.api.UserRegistrationService;
 import org.eclipse.che.api.core.ConflictException;
 import org.eclipse.che.api.core.NotFoundException;
@@ -30,7 +31,7 @@ import org.eclipse.che.api.core.rest.annotations.GenerateLink;
 import org.eclipse.che.api.core.rest.annotations.Required;
 import org.eclipse.che.api.user.server.dao.User;
 import org.eclipse.che.api.user.shared.dto.UserDescriptor;
-import org.eclipse.che.inject.DynaModule;
+import org.eclipse.che.dto.server.DtoFactory;
 import org.springframework.util.StringUtils;
 
 import javax.ws.rs.*;
@@ -44,18 +45,19 @@ import static org.eclipse.che.api.user.server.Constants.LINK_REL_CREATE_USER;
 /**
  * Created by panthro on 10/08/15.
  */
-@DynaModule
 @Api(value = "/register", description = "User registration")
 @Path("/register")
-public class RegistrationModule extends Service {
+public class RegistrationService extends Service {
 
 
-    UserRegistrationService userRegistrationService;
+    final UserRegistrationService userRegistrationService;
+    final UserEntityService userEntityService;
 
 
     @Inject
-    public RegistrationModule(UserRegistrationService userRegistrationService) {
+    public RegistrationService(UserRegistrationService userRegistrationService, UserEntityService userEntityService) {
         this.userRegistrationService = userRegistrationService;
+        this.userEntityService = userEntityService;
     }
 
 
@@ -124,6 +126,39 @@ public class RegistrationModule extends Service {
 
         return Response.ok().build();
     }
+
+    @ApiOperation(value = "Forgot password", notes = "Sends a mail to the user with a token to change his password", response = Boolean.class, position = 1)
+    @ApiResponses({@ApiResponse(code = 200, message = "Request OK check response"),
+            @ApiResponse(code = 401, message = "Invalid parameters"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal Server Error")})
+    @Path("/forgot")
+    @GET
+    @Produces(APPLICATION_JSON)
+    public Boolean requestForgotPassword(@ApiParam(value = "Email", required = true) @QueryParam("email") String email) throws NotFoundException {
+        userRegistrationService.forgotPassword(email);
+        return Boolean.TRUE;
+    }
+
+    @ApiOperation(value = "Validate Forgot Password token", notes = "Validates a token from a forgot password message", response = UserDescriptor.class, position = 1)
+    @ApiResponses({@ApiResponse(code = 200, message = "Request OK check response"),
+            @ApiResponse(code = 404, message = "User not found for token"),
+            @ApiResponse(code = 401, message = "Invalid or expired token"),
+            @ApiResponse(code = 500, message = "Internal Server Error")})
+    @Path("/forgotValidateToken")
+    @GET
+    @Produces(APPLICATION_JSON)
+    public UserDescriptor validateForgotPasswordToken(@ApiParam(value = "Token", required = true) @QueryParam("forgotToken") String forgotToken) throws NotFoundException, ConflictException {
+
+        User user = userEntityService.toUser(userRegistrationService.validateToken(forgotToken));
+        return DtoFactory.getInstance().createDto(UserDescriptor.class)
+                .withAliases(user.getAliases())
+                .withEmail(user.getEmail())
+                .withId(user.getId())
+                .withPassword("****");
+    }
+
+
 
 
 }
