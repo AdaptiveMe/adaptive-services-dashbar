@@ -22,8 +22,13 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.wordnik.swagger.annotations.*;
 import me.adaptive.core.data.api.UserEntityService;
+import me.adaptive.core.data.domain.BuildRequestEntity;
 import me.adaptive.core.data.domain.MetricServerEntity;
+import me.adaptive.core.data.domain.UserEntity;
+import me.adaptive.core.data.repo.BuildRequestRepository;
 import me.adaptive.core.data.repo.MetricServerRepository;
+import me.adaptive.core.data.repo.UserRepository;
+import org.apache.commons.collections.bidimap.TreeBidiMap;
 import org.eclipse.che.api.core.ConflictException;
 import org.eclipse.che.api.core.NotFoundException;
 import org.eclipse.che.api.core.ServerException;
@@ -36,6 +41,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import javax.ws.rs.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -51,12 +58,6 @@ import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 public class MetricsModule extends Service {
 
 
-    /**
-     * TODO: /metrics/builds/total/{platform} [android,ios,total]
-     * TODO: /metrics/builds/time/{platform} [android,ios]
-     */
-
-
     @Named("userEntityService")
     @Inject
     UserEntityService userEntityService;
@@ -64,6 +65,14 @@ public class MetricsModule extends Service {
     @Named("metricServerRepository")
     @Inject
     MetricServerRepository metricServerRepository;
+
+    @Named("buildRequestRepository")
+    @Inject
+    BuildRequestRepository buildRequestRepository;
+
+    @Named("userRepository")
+    @Inject
+    UserRepository userRepository;
 
 
     /**
@@ -91,77 +100,135 @@ public class MetricsModule extends Service {
         }
     }
 
+    // TODO: javadoc
+    // TODO: apiresponses and exceptions
+
     /**
      * Returns the number of user's builds per platform or the total number of builds
      *
      * @param platform Platform: ios, android or total
      * @return Return the number of builds
-     * @throws ServerException   When some error is produced on the server
-     * @throws ConflictException When there are issues with the parameters
      * @throws NotFoundException When the platform is not found
      */
-    @ApiOperation(value = "Total number of user's build for platform",
-            notes = "Returns the total number of user's builds for every platform",
-            response = String.class,
-            position = 2)
-    @ApiResponses({@ApiResponse(code = 200, message = "Successful operation"),
-            @ApiResponse(code = 401, message = "Invalid parameters"),
-            @ApiResponse(code = 404, message = "Platform Not Found"),
-            @ApiResponse(code = 500, message = "Internal Server Error")})
-    @GET
-    @Path("/user/builds/{platform}/total")
-    @GenerateLink(rel = "total user builds per platform")
-    @Produces(TEXT_PLAIN)
-    public String totalUserBuildsPlatform(
-            @ApiParam(value = "platform", required = true)
-            @PathParam("platform")
-            String platform) throws ServerException, ConflictException, NotFoundException {
-
-        if (!(platform.equals("android") || platform.equals("ios") || platform.equals("total"))) {
-            throw new NotFoundException("The platform specified is not defined in the system");
-        }
-
-        // TODO: Query the tables with the build information. Not created yet.
-
-        return "NOT IMPLEMENTED";
-    }
-
-    /**
-     * Return the last time values for the build of one platform
-     *
-     * @param platform Platform: ios, android or total
-     * @return The user time values for a build in a platform
-     * @throws ServerException   When some error is produced on the server
-     * @throws ConflictException When there are issues with the parameters
-     * @throws NotFoundException When the platform is not found
-     */
-    @ApiOperation(value = "Last user's build time values for platform",
-            notes = "Returns the last user's build time values for platform",
+    @ApiOperation(value = "Build metrics",
+            notes = "Returns the build metrics information requested",
             response = Map.class,
-            position = 3)
-    @ApiResponses({@ApiResponse(code = 200, message = "Successful operation"),
-            @ApiResponse(code = 401, message = "Invalid parameters"),
-            @ApiResponse(code = 404, message = "Platform Not Found"),
-            @ApiResponse(code = 500, message = "Internal Server Error")})
+            position = 2)
+    @ApiResponses({@ApiResponse(code = 404, message = "Platform Not Found")})
     @GET
-    @Path("/user/builds/{platform}/time")
-    @GenerateLink(rel = "last user's build time values for platform")
+    @Path("/build/{metric}/{aggregation}/{startDate}/{endDate}")
+    @GenerateLink(rel = "build metrics")
     @Produces(APPLICATION_JSON)
-    public Map<String, String> timeUserBuildsPlatform(
-            @ApiParam(value = "platform", required = true)
-            @PathParam("platform")
-            String platform) throws ServerException, ConflictException, NotFoundException {
+    public Map<String, Double> buildMetrics(
+            @ApiParam(value = "platform", required = false)
+            @QueryParam("platform")
+            String platform,
+            @ApiParam(value = "user_id", required = false)
+            @QueryParam("user_id")
+            String user_id,
+            @ApiParam(value = "metric", required = true)
+            @PathParam("metric")
+            String metric,
+            @ApiParam(value = "aggregation", required = true)
+            @PathParam("aggregation")
+            String aggregation,
+            @ApiParam(value = "startDate", required = true)
+            @PathParam("startDate")
+            long startDate,
+            @ApiParam(value = "endDate", required = true)
+            @PathParam("endDate")
+            long endDate) throws NotFoundException {
 
-        if (!(platform.equals("android") || platform.equals("ios") || platform.equals("total"))) {
-            throw new NotFoundException("The platform specified is not defined in the system");
+        Map<String, Double> map = new TreeMap<>();
+        Map<String, Double> dayOccurrences = new TreeMap<>();
+
+        LocalDate start = new Date(startDate).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate end = new Date(endDate).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+        // Fill the map with the values of the x-axis
+        switch (aggregation) {
+            case "sum":
+                map.put("sum", 0.0);
+                break;
+            case "day":
+                for (LocalDate date = start; date.isBefore(end); date = date.plusDays(1)) {
+                    map.put(date.toString(), 0.0);
+                    dayOccurrences.put(date.toString(), 0.0);
+                }
+                break;
+            default:
+                throw new NotFoundException("The aggregation {"+aggregation+"} is not found in the system. " +
+                        "Should be: [sum,day]");
         }
 
-        Map<String, String> map = new HashMap<>();
+        Set<BuildRequestEntity> values;
 
-        // TODO: Query the tables with the build information. Not created yet.
+        if (user_id != null && platform != null) {
+            Optional<UserEntity> user = userRepository.findByUserId(user_id);
+            values = buildRequestRepository.findByPlatformAndRequesterAndStartTimeBetween(platform, user.get(), new Date(startDate), new Date(endDate));
+        } else if (user_id == null && platform != null) {
+            values = buildRequestRepository.findByPlatformAndStartTimeBetween(platform, new Date(startDate), new Date(endDate));
+        } else if (user_id != null && platform == null) {
+            Optional<UserEntity> user = userRepository.findByUserId(user_id);
+            values = buildRequestRepository.findByRequesterAndStartTimeBetween(user.get(), new Date(startDate), new Date(endDate));
+        } else {
+            values = buildRequestRepository.findByStartTimeBetween(new Date(startDate), new Date(endDate));
+        }
 
-        map.put("key1", "NOT IMPLEMENTED");
-        map.put("key2", "NOT IMPLEMENTED");
+        // Depending on the metric
+        switch (metric) {
+            case "total":
+
+                switch (aggregation) {
+                    case "sum":
+                        map.put("sum", (double) values.size());
+                        break;
+                    case "day":
+                        for (BuildRequestEntity event : values) {
+                            String eventDate = event.getStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString();
+                            map.put(eventDate, map.get(eventDate) + 1);
+                        }
+                        break;
+                    default:
+                        throw new NotFoundException("The aggregation {"+aggregation+"} is not found in the system. " +
+                                "Should be: [sum,day]");
+                }
+                break;
+            case "time":
+
+                switch (aggregation) {
+                    case "sum":
+                        double sum = 0;
+                        for (BuildRequestEntity event : values) {
+                            System.out.println(event.getEndTime().getTime() - event.getStartTime().getTime() + "ms");
+                            sum += (event.getEndTime().getTime() - event.getStartTime().getTime());
+                        }
+                        if (values.size()>0){
+                            map.put("sum", sum/values.size());
+                        }
+                        break;
+                    case "day":
+                        for (BuildRequestEntity event : values) {
+                            String eventDate = event.getStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString();
+                            map.put(eventDate, map.get(eventDate) + (event.getEndTime().getTime() - event.getStartTime().getTime()));
+                            dayOccurrences.put(eventDate, dayOccurrences.get(eventDate) + 1);
+                        }
+
+                        for (Map.Entry<String, Double> entry : map.entrySet()) {
+                            if (dayOccurrences.get(entry.getKey()) > 0) {
+                                map.put(entry.getKey(), (entry.getValue() / dayOccurrences.get(entry.getKey())));
+                            }
+                        }
+
+                        break;
+                    default:
+                        throw new NotFoundException("The aggregation {"+aggregation+"} is not found in the system. " +
+                                "Should be: [sum,day]");
+                }
+                break;
+            default:
+                throw new NotFoundException("The metric {"+metric+"} is not found in the system. Should be: [total,time]");
+        }
 
         return map;
     }
@@ -181,7 +248,7 @@ public class MetricsModule extends Service {
     @ApiOperation(value = "Server metric last values",
             notes = "Returns the specified values for a metric in a concrete server",
             response = Map.class,
-            position = 4)
+            position = 3)
     @ApiResponses({@ApiResponse(code = 200, message = "Successful operation"),
             @ApiResponse(code = 401, message = "Invalid parameters"),
             @ApiResponse(code = 404, message = "Platform Not Found"),
