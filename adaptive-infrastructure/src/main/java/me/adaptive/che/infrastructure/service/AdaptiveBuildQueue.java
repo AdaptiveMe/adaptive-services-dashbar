@@ -392,6 +392,7 @@ public class AdaptiveBuildQueue implements BuildQueue {
                 .withTaskId(id)
                 .withWorkspace(workspace);
         final List<Link> links = new ArrayList<>();
+        final List<BuilderMetric> metrics = new ArrayList<>();
         switch (buildRequestEntity.getStatus()) {
             case IN_QUEUE:
             case IN_PROGRESS:
@@ -432,12 +433,16 @@ public class AdaptiveBuildQueue implements BuildQueue {
                                 .withProduces(ContentTypeGuesser.guessContentType(ru)));
                     }
                 }
+
             case FAILED:
                 links.add(dtoFactory.createDto(Link.class)
                         .withRel(org.eclipse.che.api.builder.internal.Constants.LINK_REL_VIEW_LOG)
                         .withHref(uriBuilder.clone().path(BuilderService.class, "getLogs").build(workspace, id).toString())
                         .withMethod("GET")
                         .withProduces(MediaType.TEXT_PLAIN));
+                if (buildRequestEntity.getEndTime() != null) {
+                    metrics.add(DtoFactory.getInstance().createDto(BuilderMetric.class).withName(BuilderMetric.END_TIME).withValue(String.valueOf(buildRequestEntity.getEndTime().getTime())));
+                }
                 /* not using downloadResultArchive for now
                 if (!results.isEmpty()) {
                     links.add(dtoFactory.createDto(Link.class)
@@ -456,6 +461,7 @@ public class AdaptiveBuildQueue implements BuildQueue {
 
         }
         descriptor.withLinks(links);
+        descriptor.withBuildStats(metrics);
         return descriptor;
     }
 
