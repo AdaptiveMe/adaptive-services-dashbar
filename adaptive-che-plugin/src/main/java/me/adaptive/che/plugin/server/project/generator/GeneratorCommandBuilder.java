@@ -80,7 +80,7 @@ public class GeneratorCommandBuilder extends CommandLineBuilder {
     private class DEFAULTS {
         private static final String ADAPTIVE = "latest";
         private static final String BOILERPLATE = "none";
-        private static final String PLATFORMS = "android,ios";
+        private static final String PLATFORMS = "android";//,ios";
         private static final String IOS_VERSION = "8.1";
         private static final String ANDROID_VERSION = "5.0";
         private static final boolean SKIP_INSTALL = true;
