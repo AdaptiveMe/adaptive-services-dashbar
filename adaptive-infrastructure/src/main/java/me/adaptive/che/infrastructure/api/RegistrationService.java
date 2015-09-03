@@ -22,6 +22,8 @@ import com.google.inject.Inject;
 import com.wordnik.swagger.annotations.*;
 import me.adaptive.core.data.api.UserEntityService;
 import me.adaptive.core.data.api.UserRegistrationService;
+import me.adaptive.core.data.domain.UserTokenEntity;
+import org.eclipse.che.api.auth.shared.dto.Token;
 import org.eclipse.che.api.core.ConflictException;
 import org.eclipse.che.api.core.NotFoundException;
 import org.eclipse.che.api.core.ServerException;
@@ -140,22 +142,19 @@ public class RegistrationService extends Service {
         return Boolean.TRUE;
     }
 
-    @ApiOperation(value = "Validate Forgot Password token", notes = "Validates a token from a forgot password message", response = UserDescriptor.class, position = 1)
+    @ApiOperation(value = "Validate Forgot Password token", notes = "Validates a token from a forgot password message", response = Token.class, position = 1)
     @ApiResponses({@ApiResponse(code = 200, message = "Request OK check response"),
             @ApiResponse(code = 404, message = "User not found for token"),
             @ApiResponse(code = 401, message = "Invalid or expired token"),
             @ApiResponse(code = 500, message = "Internal Server Error")})
-    @Path("/forgotValidateToken")
+    @Path("/validateForgotToken")
     @GET
     @Produces(APPLICATION_JSON)
-    public UserDescriptor validateForgotPasswordToken(@ApiParam(value = "Token", required = true) @QueryParam("forgotToken") String forgotToken) throws NotFoundException, ConflictException {
+    public Response validateForgotPasswordToken(@ApiParam(value = "Token", required = true) @QueryParam("forgotToken") String forgotToken) throws NotFoundException, ConflictException {
 
-        User user = userEntityService.toUser(userRegistrationService.validateToken(forgotToken));
-        return DtoFactory.getInstance().createDto(UserDescriptor.class)
-                .withAliases(user.getAliases())
-                .withEmail(user.getEmail())
-                .withId(user.getId())
-                .withPassword("****");
+        UserTokenEntity userToken = userRegistrationService.validateToken(forgotToken);
+        return Response.ok().entity(DtoFactory.getInstance().createDto(Token.class).withValue(userToken.getToken())).build();
+
     }
 
 

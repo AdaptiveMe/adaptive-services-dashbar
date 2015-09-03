@@ -20,10 +20,7 @@ package me.adaptive.core.data.api;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import me.adaptive.core.data.domain.AccountEntity;
-import me.adaptive.core.data.domain.NotificationEntity;
-import me.adaptive.core.data.domain.UserEntity;
-import me.adaptive.core.data.domain.WorkspaceEntity;
+import me.adaptive.core.data.domain.*;
 import me.adaptive.core.data.domain.types.NotificationChannel;
 import me.adaptive.core.data.domain.types.NotificationEvent;
 import me.adaptive.core.data.domain.types.NotificationStatus;
@@ -79,6 +76,8 @@ public class UserRegistrationService {
     ProfileEntityService profileEntityService;
     @Autowired
     NotificationRepository notificationRepository;
+    @Autowired
+    UserTokenEntityService userTokenEntityService;
 
     @Autowired
     NotificationSender notificationSender;
@@ -214,7 +213,7 @@ public class UserRegistrationService {
      * @throws NotFoundException in case no user can be found by the token
      * @throws ConflictException in case token is invalid OR the token hash is invalid OR the token is expired
      */
-    public UserEntity validateToken(String tokenOrigin) throws NotFoundException, ConflictException {
+    public UserTokenEntity validateToken(String tokenOrigin) throws NotFoundException, ConflictException {
         String token = new String(Base64.decodeBase64(tokenOrigin));
 
         String[] parts = token.split(":");
@@ -234,7 +233,12 @@ public class UserRegistrationService {
         if (DateTime.now().minusHours(24).isAfter(timestamp)) {
             throw new ConflictException("Expired token");
         }
-        return user.get();
+        Optional<UserTokenEntity> userToken = userTokenEntityService.findByUser(user.get()).stream().findAny();
+        if (!userToken.isPresent()) {
+            throw new ConflictException("User does not have an access token.");
+        }
+
+        return userToken.get();
 
 
     }
