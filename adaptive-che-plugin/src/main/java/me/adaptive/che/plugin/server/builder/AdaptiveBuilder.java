@@ -262,7 +262,7 @@ public class AdaptiveBuilder extends Builder {
 
         @Override
         public boolean isStarted() {
-            return BuildRequestStatus.IN_QUEUE.equals(entity.getStatus());
+            return !BuildRequestStatus.IN_QUEUE.equals(entity.getStatus());
         }
 
         @Override
