@@ -235,7 +235,8 @@ public class UserRegistrationService {
         }
         Optional<UserTokenEntity> userToken = userTokenEntityService.findByUser(user.get()).stream().findAny();
         if (!userToken.isPresent()) {
-            throw new ConflictException("User does not have an access token.");
+            return userTokenEntityService.generateTokenForUser(user.get());
+            //throw new ConflictException("User does not have an access token.");
         }
 
         return userToken.get();
