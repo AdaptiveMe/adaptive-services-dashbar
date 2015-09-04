@@ -23,6 +23,8 @@ import me.adaptive.core.data.api.WorkspaceMemberService;
 import me.adaptive.core.data.domain.UserTokenEntity;
 import me.adaptive.core.data.domain.WorkspaceEntity;
 import me.adaptive.core.data.domain.WorkspaceMemberEntity;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.eclipse.che.commons.env.EnvironmentContext;
 import org.eclipse.che.commons.user.User;
 import org.eclipse.che.commons.user.UserImpl;
@@ -37,11 +39,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
+import java.net.URI;
 import java.security.Principal;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -141,7 +141,7 @@ public class AdaptiveEnvironmentFilter implements Filter {
         /**
          * Request Param
          */
-        Optional<String> token = !isBuggyRequest(request) ? Optional.ofNullable(request.getParameter(TOKEN_PARAM)) : Optional.<String>empty();
+        Optional<String> token = !isBuggyRequest(request) ? Optional.ofNullable(request.getParameter(TOKEN_PARAM)) : getTokenFromUrl(getFullURL((HttpServletRequest) request));
         if (!token.isPresent()) {
             /**
              * Session
@@ -211,5 +211,25 @@ public class AdaptiveEnvironmentFilter implements Filter {
                 return user::getName;
             }
         };
+    }
+
+    private Optional<String> getTokenFromUrl(String url) {
+        List<NameValuePair> valuePairList = URLEncodedUtils.parse(URI.create(url), "UTF-8");
+        Optional<NameValuePair> token = valuePairList.stream().filter(nameValuePair -> TOKEN_PARAM.equals(nameValuePair.getName())).findFirst();
+        if (token.isPresent()) {
+            return Optional.of(token.get().getValue());
+        }
+        return Optional.empty();
+    }
+
+    public static String getFullURL(HttpServletRequest request) {
+        StringBuffer requestURL = request.getRequestURL();
+        String queryString = request.getQueryString();
+
+        if (queryString == null) {
+            return requestURL.toString();
+        } else {
+            return requestURL.append('?').append(queryString).toString();
+        }
     }
 }
