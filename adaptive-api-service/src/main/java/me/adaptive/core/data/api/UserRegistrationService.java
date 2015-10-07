@@ -158,7 +158,7 @@ public class UserRegistrationService {
             notificationEntity.setChannel(NotificationChannel.EMAIL);
             notificationEntity.setDestination(email);
             notificationEntity = notificationRepository.save(notificationEntity);
-            notificationSender.releaseNotification(notificationEntity);
+            //notificationSender.releaseNotification(notificationEntity);
             return userEntityService.toUser(userEntity);
         } catch (Exception e) {
             LOGGER.warn("Error registering user", e);
