@@ -45,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.transaction.Transactional;
 import java.util.*;
 
 /**
@@ -102,6 +103,7 @@ public class UserRegistrationService {
         return !StringUtils.isEmpty(password) && password.length() >= 6;
     }
 
+    @Transactional
     public User register(String email, String username, String password) throws ConflictException {
         try {
             /**
