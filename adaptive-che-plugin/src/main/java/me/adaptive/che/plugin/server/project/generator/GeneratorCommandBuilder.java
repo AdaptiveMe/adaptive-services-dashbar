@@ -277,9 +277,8 @@ public class GeneratorCommandBuilder extends CommandLineBuilder {
 
     public String getAppId() {
         if (StringUtils.isEmpty(appId)) {
-            appId = DEFAULTS.APP_ID_PREFIX + getProjectName();
+            appId = DEFAULTS.APP_ID_PREFIX + StringUtils.removePattern(getProjectName(), "[^A-Za-z0-9]");
         }
-        appId = StringUtils.deleteWhitespace(appId);
         return appId;
     }
 
