@@ -105,4 +105,8 @@ public class UserEntityService {
     public long count() {
         return userRepository.count();
     }
+
+    public UserEntity saveAndFlush(UserEntity userEntity) {
+        return userRepository.saveAndFlush(userEntity);
+    }
 }
