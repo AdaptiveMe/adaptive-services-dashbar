@@ -116,7 +116,7 @@ public class UserRegistrationService {
             userEntity.getRoles().addAll(DEFAULT_USER_ROLES);
             userEntity.setUserId(NameGenerator.generate("user-", Constants.ID_LENGTH));
             userEntity.getPreferences().put(UserPreferences.Notification.EMAIL, email);
-            userEntity = userEntityService.save(userEntity);
+            userEntity = userEntityService.saveAndFlush(userEntity);
 
             /**
              * Profile
